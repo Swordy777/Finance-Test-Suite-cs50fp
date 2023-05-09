@@ -86,7 +86,7 @@ class TestRegistrationProcess():
                                                 pytest.param("abcdefgh", "Letters only pasword", 
                                                              marks=pytest.mark.xfail(
         reason="CS50 team's implementation allows for passwords to be letters only")),
-                                                pytest.param("!@#$%^&*()", "Typographical only pasword", 
+                                                pytest.param("!@#$%^&*()", "Special characters only pasword", 
                                                              marks=pytest.mark.xfail(
         reason="CS50 team's implementation allows for passwords to be typographical only")),
                                                 pytest.param("1qaz@wsx", "No uppercase letter pasword", 

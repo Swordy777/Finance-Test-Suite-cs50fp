@@ -72,7 +72,7 @@ def new_user(browser, database, user):
     yield user
     # Delete data from mock database (should be replaced with real one)
     # This clean up segment should delete every row of data associated with the created user in every table 
-    # Here I use two tables; your implementation may be different
+    # Here I use two tables; your implementation of db schema may be different
     rp.query(database, "Delete from purchases where user_id in (Select id from users where username = ?);", user['username'])
     rp.query(database, "Delete from users where username = ?;", user['username'])
 

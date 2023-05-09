@@ -7,8 +7,6 @@ from pages.urls import URLS
 
 EX_NUMBER_OF_COLUMNS = 5
 EXPECTED_HEADERS = ["Symbol", "Name", "Shares", "Price", "TOTAL"]
-NEW_USER = "swordy2"
-NEW_PASSWORD = "123"
 OLD_USER = "swordy1"
 OLD_PASSWORD = "123"
 
@@ -26,7 +24,7 @@ def test_unauthorized_user_gets_redirected_to_login_page(default_page):
 ###################
 # Basic page structure tests for the logged in user:
 ###################
-@pytest.mark.usefixtures("login")
+@pytest.mark.usefixtures("new_user")
 class TestDefaultPageBasicsAuthed():
     def test_has_stock_table(self, default_page):
         stock_table = default_page.get_stocktable()
