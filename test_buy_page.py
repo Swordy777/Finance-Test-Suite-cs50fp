@@ -137,7 +137,7 @@ class TestStockPurchasing():
             assert error_text == EXCEED_CASH, (
                 f"Expected error image to have text {EXCEED_CASH}, actual text: {error_text}")
         else:
-            assert buy_page.get_error_image is None, (
+            assert error_image is None, (
                 f"Expected for application to not proceed with purchase due to incorrect amount value: {case}")
 
     @pytest.mark.parametrize("stock_symbol, stock_amount, case", [("NFLX"," ","White-space stock amount (one)"),
