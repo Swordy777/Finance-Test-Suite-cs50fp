@@ -14,8 +14,8 @@ class QuotePage(BasePage):
         quote_result = self.retrieve_element_if_present(*QuotePageLocators.SHARE_QUOTE_RESULT)
         return quote_result
 
-    def fill_quote_field(self, text):
-        self.quote_input().send_keys(text)
+    def fill_quote_input(self, text):
+        self.fill_input(self.quote_input(), text)
 
     def press_quote_button(self):
         self.quote_button().click()

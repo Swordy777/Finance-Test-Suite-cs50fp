@@ -54,7 +54,7 @@ class TestRegistrationProcess():
             )
         alert_text = reg_alert.text
         assert alert_text == SUCC_REG_MSG, (
-            f"Expected successfully registered user to see 'Registered!' alert , actual text: {alert_text}"
+            f"Expected successfully registered user to see {SUCC_REG_MSG} alert , actual text: {alert_text}"
             )
         
     @pytest.mark.parametrize("username, case", [("", "Empty username"), 

@@ -46,7 +46,6 @@ def browser(request):
 
 @pytest.fixture
 def database():
-
     db = sqlite3.connect("mock.db", 
                          isolation_level=None, # TODO: add description of the parameter
                          check_same_thread=False # TODO: add description of the parameter

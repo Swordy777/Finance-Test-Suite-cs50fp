@@ -1,5 +1,6 @@
 import os
 import re
+import emoji
 from urllib.parse import urlparse, unquote
 
 from selenium.webdriver.support.wait import WebDriverWait
@@ -10,7 +11,7 @@ from .locators import BasePageLocators
 
 
 class BasePage():
-    def __init__(self, browser, url, timeout=6):
+    def __init__(self, browser, url, timeout=4):
         self.browser = browser
         self.url = url
         self.timeout = timeout
@@ -104,6 +105,19 @@ class BasePage():
         hist = self.retrieve_element_if_present(*BasePageLocators.HISTORY_LINK)
         return hist
     
+    def fill_input(self, input, text):
+        if self.contains_emoji(text):
+            # Had to use this javascript workaround to be able to type emojis in chrome.
+            # https://stackoverflow.com/questions/59138825/chromedriver-only-supports-characters-in-the-bmp-error-while-sending-emoji-with
+            JS_ADD_TEXT_TO_INPUT = """
+            var elm = arguments[0], txt = arguments[1];
+            elm.value += txt;
+            elm.dispatchEvent(new Event('change'));
+            """
+            self.browser.execute_script(JS_ADD_TEXT_TO_INPUT, input, text)
+        else:
+            input.send_keys(text)
+
     def should_have_nav_items(self):
         errors = []
         if self.get_quote_navitem() is None:
@@ -180,3 +194,10 @@ class BasePage():
         else:
             query_results = [dict(row) for row in results]
             return query_results
+
+    @staticmethod
+    def contains_emoji(text):
+        for chars in text:
+            if emoji.is_emoji(chars):
+                return True
+        return False
