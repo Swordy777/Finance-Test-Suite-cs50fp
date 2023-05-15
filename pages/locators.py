@@ -40,12 +40,13 @@ class QuotePageLocators():
 class BuyPageLocators():
     SHARE_SYMBOL_INPUT = (By.NAME, "symbol")
     SHARE_AMOUNT_INPUT = (By.NAME, "shares")
-    Buy_BUTTON = (By.XPATH, "//button[text()='Buy']")
+    BUY_BUTTON = (By.XPATH, "//button[text()='Buy']")
 
 class SellPageLocators():
     SHARES_LIST = (By.CSS_SELECTOR, "select[name='symbol']")
+    SHARES_LIST_DEFAULT_OPTION = (By.CSS_SELECTOR, "select[name='symbol'] option:first-child")
     SHARE_AMOUNT_INPUT = (By.NAME, "shares")
-    Buy_BUTTON = (By.XPATH, "//button[text()='Sell']")
+    SELL_BUTTON = (By.XPATH, "//button[text()='Sell']")
 
 class HistoryPageLocators():
     HISTORY_TABLE = (By.TAG_NAME,"table")

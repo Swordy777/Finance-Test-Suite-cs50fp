@@ -11,6 +11,7 @@ INVALID_STOCK_AMOUNT = "INVALID SHARES"
 ZERO_AMOUNT = "TOO FEW SHARES"
 EXCEED_CASH = "CAN'T AFFORD"
 
+@pytest.mark.usefixtures("login")
 class TestBuyPageBasics():
     def test_has_stock_symbol_input(self, browser):
         buy_page = BuyPage(browser, URLS.BUY_URL)
@@ -76,7 +77,7 @@ class TestStockPurchasing():
         buy_page.buy_stock(stock_symbol, stock_amount)
         # TODO: avoid hardcoding the default user creds when querying the database
         # Checking the database is only applicable to the real database here, no point in querying the mock db
-        # So uncomment the query and assert if you're positive you connect to the real db
+        # So uncomment the query if you're positive you're connected to the real db
         # results = buy_page.query(database, "select stockname, amount, price, timestamp from purchases p join users u on u.id = p.user_id where u.username = ?", "swordy")
         # assert results is None, "Expected to find no new rows of purchases for current user after unsuccessfull transaction"
         error_image = buy_page.get_error_image()
@@ -154,7 +155,7 @@ class TestStockPurchasing():
     def test_invalid_stock_amount_purchase_backend_check(self, browser, stock_symbol, stock_amount, case, database, login):
         buy_page = BuyPage(browser, URLS.BUY_URL)
         buy_page.open()
-        buy_page.hack_input(buy_page.amount_input())
+        buy_page.hack_amount_input(buy_page.amount_input())
         buy_page.buy_stock(stock_symbol, stock_amount)
         # TODO: avoid hardcoding the default user creds when querying the database
         # Checking the database is only applicable to the real database here, no point in querying the mock db

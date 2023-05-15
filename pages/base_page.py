@@ -117,6 +117,20 @@ class BasePage():
             self.browser.execute_script(JS_ADD_TEXT_TO_INPUT, input, text)
         else:
             input.send_keys(text)
+    
+    def hack_amount_input(self, amount_input):
+        hack_script = """
+        var elm = arguments[0]
+        if(elm.hasAttribute("min"))
+        {
+            elm.removeAttribute("min")
+        }
+        if(elm.hasAttribute("type"))
+        {
+            elm.setAttribute("type","text") 
+        }          
+        """
+        self.browser.execute_script(hack_script, amount_input)
 
     def should_have_nav_items(self):
         errors = []

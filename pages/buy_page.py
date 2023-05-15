@@ -11,7 +11,7 @@ class BuyPage(BasePage):
         return amount_input
     
     def buy_button(self):
-        buy_button = self.retrieve_element_if_present(*BuyPageLocators.Buy_BUTTON)
+        buy_button = self.retrieve_element_if_present(*BuyPageLocators.BUY_BUTTON)
         return buy_button
 
     def press_buy_button(self):
@@ -22,16 +22,3 @@ class BuyPage(BasePage):
         self.fill_input(self.amount_input(), amount)
         self.press_buy_button()
 
-    def hack_input(self, input):
-        hack_script = """
-        var elm = arguments[0]
-        if(elm.hasAttribute("min"))
-        {
-            elm.removeAttribute("min")
-        }
-        if(elm.hasAttribute("type"))
-        {
-            elm.setAttribute("type","text") 
-        }          
-        """
-        self.browser.execute_script(hack_script, input)
