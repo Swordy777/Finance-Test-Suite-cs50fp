@@ -65,7 +65,7 @@ class TestStockInfoRequests():
         error_image = quote_page.get_error_image()
         assert error_image is not None, (
             f"Expected for application to display an error image with funny cat in case if incorrect input: {case}")
-        error_text = quote_page.get_error_text(error_image)
+        error_text = quote_page.get_error_image_text()
         if case == "Empty field":
             assert error_text == EMPTY_STOCK_SYMBOL, (
                 f"Expected error image to have text {EMPTY_STOCK_SYMBOL}, actual text: {error_text}")

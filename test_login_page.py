@@ -45,7 +45,7 @@ class TestLoginProcess():
         assert error_image is not None, (
             f"Expected for application to display an error image with funny cat in case if incorrect input: {case}"
             )
-        error_text = login_page.get_error_text(error_image)
+        error_text = login_page.get_error_image_text()
         if case == "Empty username":
             assert error_text == EMPTY_USERNAME_MSG, (
                 f"Expected error image to have text {EMPTY_USERNAME_MSG}, actual text: {error_text}"
@@ -65,7 +65,7 @@ class TestLoginProcess():
         assert error_image is not None, (
             f"Expected for application to display an error image with funny cat in case if incorrect input: {case}"
             )
-        error_text = login_page.get_error_text(error_image)
+        error_text = login_page.get_error_image_text()
         if case == "Empty password":
             assert error_text == EMPTY_PASS_MSG, (
                 f"Expected error image to have text {EMPTY_PASS_MSG}, actual text: {error_text}"

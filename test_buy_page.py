@@ -83,7 +83,7 @@ class TestStockPurchasing():
         error_image = buy_page.get_error_image()
         assert error_image is not None, (
             f"Expected for application to display an error image with funny cat when trying to buy stocks with: {case}")
-        error_text = buy_page.get_error_text(error_image)
+        error_text = buy_page.get_error_image_text()
         if case == "Empty stock symbol":
             assert error_text == EMPTY_STOCK_SYMBOL, (
                 f"Expected error image to have text {EMPTY_STOCK_SYMBOL}, actual text: {error_text}")
@@ -111,7 +111,7 @@ class TestStockPurchasing():
         error_image = buy_page.get_error_image()
         assert error_image is not None, (
             f"Expected for application to display an error image with funny cat when trying to buy stocks with: {case}")
-        error_text = buy_page.get_error_text(error_image)
+        error_text = buy_page.get_error_image_text()
         assert error_text == EMPTY_STOCK_AMOUNT, (
             f"Expected error image to have text {EMPTY_STOCK_AMOUNT}, actual text: {error_text}")
         
@@ -134,7 +134,7 @@ class TestStockPurchasing():
         if case == "Non-integer amount (comma)" or case == "Buying more than affordable":
             assert error_image is not None, (
                 f"Expected for application to display an error image with funny cat when trying to buy stocks with: {case}")
-            error_text = buy_page.get_error_text(error_image)
+            error_text = buy_page.get_error_image_text()
             assert error_text == EXCEED_CASH, (
                 f"Expected error image to have text {EXCEED_CASH}, actual text: {error_text}")
         else:
@@ -165,7 +165,7 @@ class TestStockPurchasing():
         error_image = buy_page.get_error_image()
         assert error_image is not None, (
             f"Expected for application to display an error image with funny cat when trying to buy stocks with: {case}")
-        error_text = buy_page.get_error_text(error_image)
+        error_text = buy_page.get_error_image_text()
         if case == "Zero amount":
             assert error_text == ZERO_AMOUNT, (
                 f"Expected error image to have text {ZERO_AMOUNT}, actual text: {error_text}")

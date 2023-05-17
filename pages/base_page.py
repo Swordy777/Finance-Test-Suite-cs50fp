@@ -1,7 +1,8 @@
 import os
 import re
 import emoji
-from urllib.parse import urlparse, unquote
+import requests
+from urllib.parse import urlparse, quote_plus, unquote
 
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.common.exceptions import TimeoutException
@@ -16,6 +17,7 @@ class BasePage():
         self.url = url
         self.timeout = timeout
         self.INITIAL_CASH = 10000.00
+        self.API_KEY = "pk_4e5ad72f580a4034a65dc765141d6d0a"
     
     def retrieve_element_if_present(self, how, what):
         try:
@@ -76,7 +78,30 @@ class BasePage():
     def get_error_image(self):
         error_image = self.retrieve_element_if_present(*BasePageLocators.ERROR_IMAGE)
         return error_image
-    
+
+    def get_error_image_text(self):
+        error_image = self.get_error_image()
+        if error_image is None:
+            return None
+        link = error_image.get_attribute("src")
+        parsed_url = urlparse(link).path
+        fullname = os.path.split(parsed_url)[1]
+        fullname = unquote(fullname)
+        name = re.sub(r'(.jpg)$', "" , fullname)
+        name = re.sub(r'-', " " , name)
+        def reverse_escape(s):
+            """
+            Escape special characters. But in reverse!!!
+            https://github.com/jacebrowning/memegen#special-characters
+            """
+            for old, new in [("-", "--"), (" ", "-"), ("_", "__"), ("?", "~q"),
+                            ("%", "~p"), ("#", "~h"), ("/", "~s"), ("\"", "''")]:
+                s = s.replace(new, old)
+            return s
+        name = reverse_escape(name)
+        name = name.upper()
+        return name
+
     def should_have_default_link(self):
         default_link = self.retrieve_element_if_present(*BasePageLocators.DEFAULT_LINK)
         assert default_link is not None, "Couldn't find link to the default page (the clickable CS50 logo)"
@@ -106,6 +131,7 @@ class BasePage():
         return hist
     
     def fill_input(self, input, text):
+        text = str(text)
         if self.contains_emoji(text):
             # Had to use this javascript workaround to be able to type emojis in chrome.
             # https://stackoverflow.com/questions/59138825/chromedriver-only-supports-characters-in-the-bmp-error-while-sending-emoji-with
@@ -156,30 +182,68 @@ class BasePage():
             errors.append("Expected navigation menu to not have 'History' navigation item")
         assert not errors, "; ".join(errors)
 
+    def organize_cell_data(self, all_cell_elements, all_header_elements):
+        cell_inner_text = [cell.text for cell in all_cell_elements]
+        header_names = [header.text for header in all_header_elements]
+        list_of_rows = []
+        if len(cell_inner_text) % len(header_names) == 0:
+            rows_amount = int(len(cell_inner_text)/len(header_names))
+            for every_row in range(rows_amount):
+                new_row = dict.fromkeys(header_names)
+                for key in new_row:
+                    new_row[key] = cell_inner_text.pop(0)
+                    if self.check_if_integer(new_row[key]):
+                        new_row[key] = int(new_row[key])
+                    elif self.check_if_currency(new_row[key]):
+                        new_row[key] = self.convert_currency_to_number(new_row[key])
+                list_of_rows.append(new_row)
+            if len(list_of_rows) == 1:
+                return list_of_rows[0]
+            else:
+                return list_of_rows
+        return None
+
+    #Taking this directly from Finance p-set
+    def lookup(self, symbol):
+        """Look up quote for symbol."""
+        # Contact API
+        try:
+            url = f"https://cloud.iexapis.com/stable/stock/{quote_plus(symbol)}/quote?token={self.API_KEY}"
+            response = requests.get(url)
+            response.raise_for_status()
+        except requests.RequestException:
+            return None
+        # Parse response
+        try:
+            quote = response.json()
+            return {
+                "name": quote["companyName"],
+                "price": float(quote["latestPrice"]),
+                "symbol": quote["symbol"]
+            }
+        except (KeyError, TypeError, ValueError):
+            return None
     #
     # Helper functions
     #
     @staticmethod
-    def get_error_text(error_image):
-        link = error_image.get_attribute("src")
-        parsed_url = urlparse(link).path
-        fullname = os.path.split(parsed_url)[1]
-        fullname = unquote(fullname)
-        name = re.sub(r'(.jpg)$', "" , fullname)
-        name = re.sub(r'-', " " , name)
-        def reverse_escape(s):
-            """
-            Escape special characters. But in reverse!!!
-            https://github.com/jacebrowning/memegen#special-characters
-            """
-            for old, new in [("-", "--"), (" ", "-"), ("_", "__"), ("?", "~q"),
-                            ("%", "~p"), ("#", "~h"), ("/", "~s"), ("\"", "''")]:
-                s = s.replace(new, old)
-            return s
-        name = reverse_escape(name)
-        name = name.upper()
-        return name
+    def check_if_currency(currency):
+        if re.fullmatch(r"^\$(\d{0,3}[,])*(\d{0,3}[.]){1}\d+", currency):
+            return True
+        return False
+    
+    @staticmethod
+    def check_if_integer(number):
+        if re.fullmatch(r"^\-{0,1}\d*", number):
+            return True
+        return False
 
+    @staticmethod
+    def check_if_float(number):
+        if re.fullmatch(r"^\-{0,1}\d*[,.]{1}\d*", number):
+            return True
+        return False
+    
     @staticmethod
     def convert_currency_to_number(currency):
         currency = currency.replace("$","")
@@ -215,3 +279,5 @@ class BasePage():
             if emoji.is_emoji(chars):
                 return True
         return False
+    
+

@@ -45,6 +45,9 @@ class TestRegistrationProcess():
         assert user_info['cash'] == reg_page.INITIAL_CASH, (
             f"Expected new user to have {reg_page.INITIAL_CASH} amount of cash, actual amount: {user_info['cash']}"
             )
+        user_history = reg_page.query(
+            database, "Select * from purchases p join users u where u.id = p.user_id where u.username = ?", user['username'])
+        assert user_history is None, "Expected for database to have no records of new user's purchases"
         assert reg_page.url_should_change_to(URLS.DEFAULT_URL), (
             f"Expected successfully registered user to get redirected to default page, actual page: {reg_page.get_current_url()}"
             )
@@ -56,6 +59,8 @@ class TestRegistrationProcess():
         assert alert_text == SUCC_REG_MSG, (
             f"Expected successfully registered user to see {SUCC_REG_MSG} alert , actual text: {alert_text}"
             )
+        
+    #TODO: add test that checks different usernames 
         
     @pytest.mark.parametrize("username, case", [("", "Empty username"), 
                                                 (" ", "Whitespaces only username (one)"),
@@ -107,7 +112,7 @@ class TestRegistrationProcess():
         assert error_image is not None, (
             f"Expected for application to display an error image with funny cat in case if incorrect input: {case}"
             )
-        error_text = reg_page.get_error_text(error_image)
+        error_text = reg_page.get_error_image_text()
         if case == "Empty password":
             assert error_text == ERROR_MSG_NO_PASSWORD, (
                 f"Expected error image to have text {ERROR_MSG_NO_PASSWORD}, actual text: {error_text}"
@@ -127,7 +132,7 @@ class TestRegistrationProcess():
         assert error_image is not None, (
             f"Expected for application to display an error image of funny cat in case if incorrect input: {case}"
             )
-        error_text = reg_page.get_error_text(error_image)
+        error_text = reg_page.get_error_image_text()
         assert error_text == ERROR_MSG_WRONG_PASSWORD, (
                 f"Expected error image to have text {ERROR_MSG_WRONG_PASSWORD}, actual text: {error_text}"
                 )
