@@ -1,8 +1,7 @@
 import os
 import re
 import emoji
-import requests
-from urllib.parse import urlparse, quote_plus, unquote
+from urllib.parse import urlparse, unquote
 
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.common.exceptions import TimeoutException
@@ -11,126 +10,164 @@ from selenium.webdriver.support import expected_conditions as EC
 from .locators import BasePageLocators
 
 
+DEFAULT_TIMEOUT = 4
+INITIAL_CASH = 10000.00
+
+
 class BasePage():
-    def __init__(self, browser, url, timeout=4):
+    """
+    BasePage POM.
+    Its' methods are essential 'building blocks' for all of its' children classes.
+    """
+
+    def __init__(self, browser, url, timeout=DEFAULT_TIMEOUT):
         self.browser = browser
         self.url = url
         self.timeout = timeout
-        self.INITIAL_CASH = 10000.00
-        self.API_KEY = "pk_4e5ad72f580a4034a65dc765141d6d0a"
     
+
     def retrieve_element_if_present(self, how, what):
+        """
+        Looks for an element on the page for (timeout) seconds
+        Returns the element object; If element wasn't found returns None
+        how - alias for Selenium's find_element By strategy
+        what - alias for Selenium's find_element locator argument
+        """
+
         try:
             element = WebDriverWait(self.browser, self.timeout).until(lambda el: el.find_element(how, what))
         except TimeoutException:
             return None
         return element
-    
+
+
     def retrieve_multiple_elements_if_present(self, how, what):
+        """
+        Looks for multiple elements on the page for (timeout) seconds
+        Returns a list of element objects; If no element was found returns None
+        how - alias for Selenium's find_elements By strategy
+        what - alias for Selenium's find_elements locator argument
+        """
+        
         try:
             list_of_elements = WebDriverWait(self.browser, self.timeout).until(lambda el: el.find_elements(how, what))
         except TimeoutException:
             return None
         return list_of_elements
     
+
     def open(self):
+        """Opens the URL that was used to initiate a POM object"""
+        
         self.browser.get(self.url)
 
-    def go_to_other_page(self, new_url):
-        self.browser.get(new_url)
 
-    def get_page_title(self):
-        return self.browser.title
+    def go_to_other_page(self, new_url):
+        """Opens the given URL"""
+        
+        self.browser.get(new_url)
     
+
     def get_current_url(self):
+        """Returns the URL for the current page"""
+        
         return self.browser.current_url
 
+
     def url_should_change_to(self, new_url):
+        """
+        Waits for (timeout) seconds until current URL changes to given new_url
+        Returns True if URL has changed, and False if didn't
+        """
+        
         try:
             WebDriverWait(self.browser, self.timeout).until(EC.url_to_be(new_url))
         except TimeoutException:
             return False
         return True
     
-    def get_logout_link(self):
-        logout_link = self.retrieve_element_if_present(*BasePageLocators.LOGOUT_LINK)
-        return logout_link
 
-    def get_register_link(self):
-        register_link = self.retrieve_element_if_present(*BasePageLocators.REGISTER_LINK)
-        return register_link
+    def get_flash(self):
+        """
+        Returns Flask's 'flash' alert
+        https://flask.palletsprojects.com/en/1.1.x/quickstart/#message-flashing
+        """
+        
+        return self.retrieve_element_if_present(*BasePageLocators.ALERT_MESSAGE)
+    
 
-    def get_login_link(self):
-        login_link = self.retrieve_element_if_present(*BasePageLocators.LOGIN_LINK)
-        return login_link
-    
-    def get_success_alert(self):
-        success_alert = self.retrieve_element_if_present(*BasePageLocators.ALERT_MESSAGE)
-        return success_alert
-    
     def get_browser_alert(self):
+        """
+        Looks for a built-in browser alert for (timeout) seconds.
+        If found, returns an alert object. If not, returns None
+        """
+        
         try:
             alert = WebDriverWait(self.browser, self.timeout).until(EC.alert_is_present())
         except TimeoutException:
             return None
         return alert
     
+
     def get_error_image(self):
-        error_image = self.retrieve_element_if_present(*BasePageLocators.ERROR_IMAGE)
-        return error_image
+        """Returns https://memegen.link/ generated image from CS50 Finance's apology.html """
+        
+        return self.retrieve_element_if_present(*BasePageLocators.ERROR_IMAGE)
+
 
     def get_error_image_text(self):
+        """Parces the error message from get_error_image() and returns it in text format"""
+        
         error_image = self.get_error_image()
         if error_image is None:
             return None
-        link = error_image.get_attribute("src")
-        parsed_url = urlparse(link).path
-        fullname = os.path.split(parsed_url)[1]
-        fullname = unquote(fullname)
-        name = re.sub(r'(.jpg)$', "" , fullname)
-        name = re.sub(r'-', " " , name)
+        url = error_image.get_attribute("src")
+        parsed_url = urlparse(url).path
+        filename = unquote(os.path.split(parsed_url)[1])
+        name = re.sub(r'-', ' ', re.sub(r'(.jpg)$', '' , filename))
         def reverse_escape(s):
             """
-            Escape special characters. But in reverse!!!
+            Escape special characters. But in reverse!!! 
+            Slightly altered escape() from CS50's Finance Problem set, as of June 2023
+            
             https://github.com/jacebrowning/memegen#special-characters
             """
             for old, new in [("-", "--"), (" ", "-"), ("_", "__"), ("?", "~q"),
                             ("%", "~p"), ("#", "~h"), ("/", "~s"), ("\"", "''")]:
                 s = s.replace(new, old)
             return s
-        name = reverse_escape(name)
-        name = name.upper()
-        return name
+        return reverse_escape(name).upper()
 
-    def should_have_default_link(self):
-        default_link = self.retrieve_element_if_present(*BasePageLocators.DEFAULT_LINK)
-        assert default_link is not None, "Couldn't find link to the default page (the clickable CS50 logo)"
+
+    def get_value(self, input):
+        """Returns a value of web element's attribute 'value' """
+        
+        return input.get_attribute("value")
+
+
+    def get_placeholder(self, input):
+        """Returns a value of web element's attribute 'placeholder'"""
+
+        return input.get_attribute("placeholder")
     
-    def should_have_cs50_logo(self):
-        cs50_logo_parts = self.retrieve_multiple_elements_if_present(*BasePageLocators.CS50_LOGO_PART)
-        logo_text = ""
-        for each_span_element in cs50_logo_parts:
-            logo_text += each_span_element.text
-        assert logo_text == "C$50Finance", (
-            "Page Logo in the navigation bar (concatenation of spans inside the default page link) doesnt spell 'C$50Finance'")
 
-    def get_quote_navitem(self):
-        quote = self.retrieve_element_if_present(*BasePageLocators.QUOTE_LINK)
-        return quote
-
-    def get_buy_navitem(self):
-        buy = self.retrieve_element_if_present(*BasePageLocators.BUY_LINK)
-        return buy
-
-    def get_sell_navitem(self):
-        sell = self.retrieve_element_if_present(*BasePageLocators.SELL_LINK)
-        return sell
+    def is_unique(self, list_of_elements):
+        """
+        An extension for retrieve_multiple_elements_if_present()
+        Checks the argument for being a one of a kind element on the webpage.
+        if it is a list of length 1 returns True
+        If it isn't, returns False
+        """
+        
+        if isinstance(list_of_elements, list) and len(list_of_elements) == 1:
+            return True
+        else:
+            return False
     
-    def get_hist_navitem(self):
-        hist = self.retrieve_element_if_present(*BasePageLocators.HISTORY_LINK)
-        return hist
-    
+
     def fill_input(self, input, text):
+        """Fills the input with given text"""
+        
         text = str(text)
         if self.contains_emoji(text):
             # Had to use this javascript workaround to be able to type emojis in chrome.
@@ -144,140 +181,106 @@ class BasePage():
         else:
             input.send_keys(text)
     
-    def hack_amount_input(self, amount_input):
-        hack_script = """
-        var elm = arguments[0]
-        if(elm.hasAttribute("min"))
-        {
-            elm.removeAttribute("min")
-        }
-        if(elm.hasAttribute("type"))
-        {
-            elm.setAttribute("type","text") 
-        }          
+
+    def set_type_to_text(self, input):
         """
-        self.browser.execute_script(hack_script, amount_input)
+        Adds/changes an elements 'type' attribute to 'text'
+        Also deletes element's 'min' and 'max' attributes 
+        """
+        
+        script = """
+        var elm = arguments[0]
+        var bounds = ["min", "max"]
 
-    def should_have_nav_items(self):
-        errors = []
-        if self.get_quote_navitem() is None:
-            errors.append("Couldn't find 'Quote' navigation item")
-        if self.get_buy_navitem() is None:
-            errors.append("Couldn't find 'Buy' navigation item")
-        if self.get_sell_navitem() is None:
-            errors.append("Couldn't find 'Sell' navigation item")
-        if self.get_hist_navitem() is None:
-            errors.append("Couldn't find 'History' navigation item")
-        assert not errors, "; ".join(errors)
+        for (attr in bounds) {
+            if(elm.hasAttribute(attr)) {
+                elm.removeAttribute(attr)
+            }
+        }
 
-    def should_not_have_nav_items(self):
-        errors = []
-        if self.get_quote_navitem() is not None:
-            errors.append("Expected navigation menu to not have 'Quote' navigation item")
-        if self.get_buy_navitem() is not None:
-            errors.append("Expected navigation menu to not have 'Buy' navigation item")
-        if self.get_sell_navitem() is not None:
-            errors.append("Expected navigation menu to not have 'Sell' navigation item")
-        if self.get_hist_navitem() is not None:
-            errors.append("Expected navigation menu to not have 'History' navigation item")
-        assert not errors, "; ".join(errors)
+        elm.setAttribute("type", "text") 
+        """
+        self.browser.execute_script(script, input)
+
 
     def organize_cell_data(self, all_cell_elements, all_header_elements):
+        """
+        Takes table's header and cell lists as arguments.
+        Checks if division of cell count by header count doesn't provide a remainder
+        Then returns a list of dictionaries structured as {header: cell value}
+        If there's only one cell row, returns a dictionary for this row
+        """
+        
         cell_inner_text = [cell.text for cell in all_cell_elements]
         header_names = [header.text for header in all_header_elements]
         list_of_rows = []
         if len(cell_inner_text) % len(header_names) == 0:
-            rows_amount = int(len(cell_inner_text)/len(header_names))
-            for every_row in range(rows_amount):
+            rows_count = int(len(cell_inner_text)/len(header_names))
+            for every_row in range(rows_count):
                 new_row = dict.fromkeys(header_names)
                 for key in new_row:
                     new_row[key] = cell_inner_text.pop(0)
-                    if self.check_if_integer(new_row[key]):
+                    if self.is_integer(new_row[key]):
                         new_row[key] = int(new_row[key])
-                    elif self.check_if_currency(new_row[key]):
-                        new_row[key] = self.convert_currency_to_number(new_row[key])
+                    elif self.is_currency(new_row[key]):
+                        new_row[key] = self.currency_to_number(new_row[key])
                 list_of_rows.append(new_row)
             if len(list_of_rows) == 1:
                 return list_of_rows[0]
             else:
                 return list_of_rows
         return None
+        
 
-    #Taking this directly from Finance p-set
-    def lookup(self, symbol):
-        """Look up quote for symbol."""
-        # Contact API
-        try:
-            url = f"https://cloud.iexapis.com/stable/stock/{quote_plus(symbol)}/quote?token={self.API_KEY}"
-            response = requests.get(url)
-            response.raise_for_status()
-        except requests.RequestException:
-            return None
-        # Parse response
-        try:
-            quote = response.json()
-            return {
-                "name": quote["companyName"],
-                "price": float(quote["latestPrice"]),
-                "symbol": quote["symbol"]
-            }
-        except (KeyError, TypeError, ValueError):
-            return None
-    #
-    # Helper functions
-    #
     @staticmethod
-    def check_if_currency(currency):
+    def is_currency(currency):
+        """
+        Helper function for organize_cell_data()
+        Checks if cell value is formatted as a currency by using regular expression.
+        Returns True if it is, and False if it isn't
+        """
+        
         if re.fullmatch(r"^\$(\d{0,3}[,])*(\d{0,3}[.]){1}\d+", currency):
             return True
         return False
     
+
     @staticmethod
-    def check_if_integer(number):
+    def is_integer(number):
+        """
+        Helper function for organize_cell_data()
+        Checks if cell value is formatted as a an integer by using regular expression.
+        Returns True if it is, and False if it isn't
+        """
+
         if re.fullmatch(r"^\-{0,1}\d*", number):
             return True
         return False
+   
 
     @staticmethod
-    def check_if_float(number):
-        if re.fullmatch(r"^\-{0,1}\d*[,.]{1}\d*", number):
-            return True
-        return False
-    
-    @staticmethod
-    def convert_currency_to_number(currency):
+    def currency_to_number(currency):
+        """
+        Helper function for organize_cell_data()
+        Strips cell value of currency formatting and casts it to float
+        """
+
         currency = currency.replace("$","")
         currency = currency.replace(",","")
         currency = round(float(currency), 2)
         return currency
-        
-    @staticmethod
-    def query(database, *args):
-        if len(args) == 1:
-            query = args[0]
-            database.execute(query)
-            results = database.fetchall()
-        elif len(args) > 1:
-            query = args[0]
-            parameters = args[1:]
-            database.execute(query, parameters)
-            results = database.fetchall()
-        else:
-            return None
-        if len(results) == 0:
-            return None
-        elif len(results) == 1:
-            query_results = [dict(row) for row in results]
-            return query_results[0]
-        else:
-            query_results = [dict(row) for row in results]
-            return query_results
+
 
     @staticmethod
     def contains_emoji(text):
+        """
+        Helper function for fill_input()
+        Checks if the argument contains emoji symbols.
+        Returns True if it does, and False if it doesn't
+        """
+
         for chars in text:
             if emoji.is_emoji(chars):
                 return True
         return False
-    
 

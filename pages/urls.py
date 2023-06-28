@@ -1,6 +1,8 @@
-BASEURL = "https://finance.cs50.net"
-
 class URLS():
+    """Defines base URL and available routes"""
+
+    BASEURL = "https://finance.cs50.net"
+
     DEFAULT_URL = BASEURL + "/"
     LOGIN_URL = BASEURL + "/login"
     LOGOUT_URL = BASEURL + "/logout"
