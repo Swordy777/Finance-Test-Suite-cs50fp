@@ -10,10 +10,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from db_queries import DataBaseQueries
 from pages.register_page import RegisterPage
 from pages.urls import URLS
-
-
-# Path to app's database file. By default is set to the mock database
-DATABASE_PATH = "mock.db"
+from constants import DatabaseConstants as DBC
 
 
 def check_browser(value):
@@ -81,7 +78,7 @@ def database():
     Finally the object of the class is yilded for later use.
     """
 
-    db = sqlite3.connect(DATABASE_PATH, 
+    db = sqlite3.connect(DBC.DATABASE_PATH, 
                          isolation_level=None,  # Turns autocommit mode on for sqlite3, 
                                                 # i.e all changes are commited immediately
                          check_same_thread=True # Makes sure connection is only used by the thread that created it

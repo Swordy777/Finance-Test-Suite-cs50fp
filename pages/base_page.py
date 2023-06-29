@@ -10,8 +10,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from .locators import BasePageLocators
 
 
+# Default timeout value for webpage element search (in seconds)
 DEFAULT_TIMEOUT = 4
-INITIAL_CASH = 10000.00
 
 
 class BasePage():

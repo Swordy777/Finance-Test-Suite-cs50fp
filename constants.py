@@ -61,6 +61,9 @@ class SharedConstants():
 
 class DatabaseConstants():
     """Database column names"""
+    # Path to app's database file. By default is set to the mock database
+    DATABASE_PATH = "mock.db"
+
 
     # Database table column name for each transaction's stock symbol
     STOCK_NAME = "stockname"
