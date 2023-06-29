@@ -1,70 +1,14 @@
 import pytest
-import time
-from random import random, uniform, randint, choice
+from random import choice
 
 from pages.sell_page import SellPage
 from pages.buy_page import BuyPage
 from pages.urls import URLS
 from helpers import generate_tests_cls_parametrize, setup_page
+from constants import SharedConstants as ShC, DatabaseConstants as DBC, SellConstants as SC
 
 
-SP_EX_SYMBOL_SELECT_DEFAULT = "Symbol"
-SP_EX_AMOUNT_INPUT_VALUE = ""
-SP_EX_AMOUNT_INPUT_PH = "Shares"
 
-SP_EMPTY_STOCK_SYMBOL = "MISSING SYMBOL"
-SP_INVALID_STOCK_SYMBOL = "SYMBOL NOT OWNED"
-SP_SUCC_SELL_MSG = "Sold!"
-SP_EMPTY_STOCK_AMOUNT = "MISSING SHARES"
-SP_INVALID_STOCK_AMOUNT = "INVALID SHARES"
-SP_ZERO_AMOUNT = "SHARES MUST BE POSITIVE"
-SP_EXCEED_AMOUNT = "TOO MANY SHARES"
-
-SP_MOCK_PRICE = 777.7
-SP_INITIAL_CASH = 10000.0
-
-DB_STOCK_NAME = "stockname"
-DB_STOCK_AMOUNT = "amount"
-DB_PRICE = "price"
-
-TEST_SYMBOLS = ["AAPL", "MSFT", "NFLX", "MCD"]
-
-SP_SUCCESSFULL_SELL_CASES = [(choice(TEST_SYMBOLS), 1)]
-
-SP_SUCCESSFULL_BATCH_SELLS = [([choice(TEST_SYMBOLS), choice(TEST_SYMBOLS).lower()], 
-                               [1, 2])]
-
-SP_INVALID_SYMBOL_CASES = [("", "Empty stock symbol"),
-                           (" ", "White-space stock symbol (one)"),
-                           ("   ", "White-space stock symbol (few)"),
-                           (randint(1, 999), "Digits only stock symbol"),
-                           (0, "Zero stock symbol"),
-                           (round(random()*10 + 0.1, 1), "Floating point number stock symbol"),
-                           (str(round(random()*10 + 0.1, 1)).replace(".",","), "Floating point number (comma) stock symbol"),
-                           (time.strftime("%d.%m.%Y", time.localtime()), "Date stock symbol"),
-                           ("NULL", "NULL stock symbol"),
-                           ("$@%?", "Special characters only stock symbol"),
-                           ("zyzx", "Non-existent stock symbol (only letters)"),
-                           ("$A23", "Non-existent stock symbol (combination)"),
-                           ("тест", "Other alphabets stock symbol #1"),
-                           ("片仮名", "Other alphabets stock symbol #2"),
-                           ("😍😍😍", "Emoji stock symbol")]
-
-SP_UNTYPABLE_AMOUNT_CASES = [("", "Empty stock amount"),
-                             (" ", "White-space stock amount (one)"),
-                             ("   ", "White-space stock amount (few)"),
-                             ("two", "Letters in amount"),
-                             ("$@%", "Special characters amount"),
-                             ("пять", "Other alphabets amount #1"),
-                             ("片仮名", "Other alphabets amount #2"),
-                             ("💵💵💵", "Emoji stock amount"),
-                             (",", "Comma")]
-
-SP_TYPABLE_AMOUNT_CASES = [(0, "Zero amount"),
-                           (randint(-10000, -1), "Negative amount"),
-                           (round(int(random()*10) + uniform(0.1, 0.9), 1), "Float amount (period)"),
-                           (randint(1000, 10000), "Selling more than you posess"),
-                           (round((random()*10), 0), "Fractionless float")]
 
 
 class TestSellPageBasics():
@@ -81,7 +25,7 @@ class TestSellPageBasics():
         """Verify presence of Stock symbol select input"""
 
         assert sell_page.symbol_select() is not None, (
-            "Expected the Sell Page to have a dropdown list of posessed stocks"
+            "Expected the Sell Page to have a dropdown list of possessed stocks"
             )
 
 
@@ -94,12 +38,12 @@ class TestSellPageBasics():
             )
 
 
-    def test_stock_symbol_select_default_value(self, sell_page):
-        """Verify Stock symbol select input's default value"""
+    def test_stock_symbol_select_default_option(self, sell_page):
+        """Verify Stock symbol select input's default option name"""
 
         symbol_select = sell_page.symbol_select_default_option()
-        assert symbol_select.text == SP_EX_SYMBOL_SELECT_DEFAULT, (
-            f"Expected symbol select input on the Sell page to have default value {SP_EX_SYMBOL_SELECT_DEFAULT}, " \
+        assert symbol_select.text == SC.EX_SYMBOL_SELECT_DEFAULT, (
+            f"Expected symbol select input on the Sell page to have default value {SC.EX_SYMBOL_SELECT_DEFAULT}, " \
                 f"actual name: {symbol_select.text}"
                 )
 
@@ -125,8 +69,8 @@ class TestSellPageBasics():
         """Verify Stock amount input's default value"""
 
         amount_value = sell_page.get_value(sell_page.amount_input())
-        assert amount_value == SP_EX_AMOUNT_INPUT_VALUE, (
-            f"Expected stock amount input to be {'empty' if SP_EX_AMOUNT_INPUT_VALUE == '' else SP_EX_AMOUNT_INPUT_VALUE}, " \
+        assert amount_value == SC.EX_AMOUNT_INPUT_VALUE, (
+            f"Expected stock amount input to be {'empty' if SC.EX_AMOUNT_INPUT_VALUE == '' else SC.EX_AMOUNT_INPUT_VALUE}, " \
                 f"actual value: {amount_value}"
                 )
         
@@ -135,8 +79,8 @@ class TestSellPageBasics():
         """Verify Stock amount input's placeholder value"""
 
         amount_ph = sell_page.get_placeholder(sell_page.amount_input())
-        assert amount_ph == SP_EX_AMOUNT_INPUT_PH, (
-            f"Expected stock amount placeholder text to be {SP_EX_AMOUNT_INPUT_PH}, actual value: {amount_ph}"
+        assert amount_ph == SC.EX_AMOUNT_INPUT_PH, (
+            f"Expected stock amount placeholder text to be {SC.EX_AMOUNT_INPUT_PH}, actual value: {amount_ph}"
             )
         
 
@@ -183,8 +127,8 @@ class StockSelectBehaviour():
             # Insert data into mock database
             # We can't check the price API so we use a mock value
             # COMMENT OUT THESE LINES if you have access to the app's database
-            database.mock_db_add_tran(new_user.username, symbol, amount, SP_MOCK_PRICE)
-            database.mock_db_change_cash_by(new_user.username, -SP_MOCK_PRICE * amount)
+            database.mock_db_add_tran(new_user.username, symbol, amount, ShC.MOCK_PRICE)
+            database.mock_db_change_cash_by(new_user.username, -ShC.MOCK_PRICE * amount)
 
 
     @pytest.fixture(autouse=True, scope="class")
@@ -204,20 +148,20 @@ class StockSelectBehaviour():
 
 
     def test_number_of_options(self, symbol_select, database, new_user):
-        """Verify that number of available stock select input options corresponds with number of posessed stocks"""
+        """Verify that number of available stock select input options corresponds with number of possessed stocks"""
 
         options_count = len([option.text for option in symbol_select.options][1:])
-        posessed_stocks = database.posessed_stock_names(new_user.username)
-        # Have to check the type of posessed_stocks because of how query() method from database works
-        stocks_count = len(posessed_stocks) if isinstance(posessed_stocks, list) else 1
+        possessed_stocks = database.possessed_stock_names(new_user.username)
+        # Have to check the type of possessed_stocks because of how query() method from database works
+        stocks_count = len(possessed_stocks) if isinstance(possessed_stocks, list) else 1
         assert options_count == stocks_count, (
             f"Expected amount of select input options ({options_count}) to be equal to " \
-                f"amount of unique posessed stocks ({stocks_count})"
+                f"amount of unique possessed stocks ({stocks_count})"
                 )
 
 
     def test_stock_select_input_has_owned_stock_symbols(self, symbol_select, stock_symbols):
-        """Verify that available stock select input options correspond with posessed stocks"""
+        """Verify that available stock select input options correspond with possessed stocks"""
 
         options_names = [option.text for option in symbol_select.options][1:]
         for stock_symbol in stock_symbols:
@@ -230,7 +174,7 @@ class StockSelectBehaviour():
 # Generate parametrized classes from template:
 generated_classes = generate_tests_cls_parametrize(StockSelectBehaviour,
                                                    "stock_symbols, stock_amounts",
-                                                   SP_SUCCESSFULL_BATCH_SELLS
+                                                   SC.SUCCESSFULL_BATCH_SELLS
                                                    )
 for class_name in generated_classes:
     locals()[class_name] = generated_classes[class_name]
@@ -253,8 +197,8 @@ class SuccessfullSelling():
         # Insert data into mock database
         # We can't check the price API so we use a mock value
         # COMMENT OUT THESE LINES if you have access to the app's database
-        database.mock_db_add_tran(new_user.username, stock_symbol, stock_amount, SP_MOCK_PRICE)
-        database.mock_db_change_cash_by(new_user.username, -SP_MOCK_PRICE * stock_amount)
+        database.mock_db_add_tran(new_user.username, stock_symbol, stock_amount, ShC.MOCK_PRICE)
+        database.mock_db_change_cash_by(new_user.username, -ShC.MOCK_PRICE * stock_amount)
 
         # Yield user's initial cash value before selling
         yield database.users_cash(new_user.username)
@@ -277,8 +221,8 @@ class SuccessfullSelling():
         # Insert data into mock database
         # We can't check the price API so we use a mock value
         # COMMENT OUT THESE LINES if you have access to the app's database
-        database.mock_db_add_tran(new_user.username, stock_symbol, stock_amount * (-1), SP_MOCK_PRICE)
-        database.mock_db_change_cash_by(new_user.username, SP_MOCK_PRICE * stock_amount)
+        database.mock_db_add_tran(new_user.username, stock_symbol, stock_amount * (-1), ShC.MOCK_PRICE)
+        database.mock_db_change_cash_by(new_user.username, ShC.MOCK_PRICE * stock_amount)
 
 
     def test_redirect_to_default_page(self, sell_page):
@@ -302,8 +246,8 @@ class SuccessfullSelling():
         """Verify alert message"""
 
         sell_alert = sell_page.get_flash()
-        assert sell_alert.text == SP_SUCC_SELL_MSG, (
-            f"Expected user to see {SP_SUCC_SELL_MSG} alert after successfull selling, actual text: {sell_alert.text}"
+        assert sell_alert.text == SC.SUCC_SELL_MSG, (
+            f"Expected user to see {SC.SUCC_SELL_MSG} alert after successfull selling, actual text: {sell_alert.text}"
             )
         
 
@@ -320,11 +264,11 @@ class SuccessfullSelling():
         """Verify correspondence of inputs and db data"""
 
         # Assemble expected values list
-        ex_dict = {DB_STOCK_NAME: stock_symbol.upper(), DB_STOCK_AMOUNT: -stock_amount}
+        ex_dict = {DBC.STOCK_NAME: stock_symbol.upper(), DBC.STOCK_AMOUNT: -stock_amount}
 
         # Can't test price value, because it's provided by API, for which we don't have testing tools
         # Uncomment this line only if you have access to app's database
-        ex_dict.update({DB_PRICE: SP_MOCK_PRICE})
+        ex_dict.update({DBC.PRICE: ShC.MOCK_PRICE})
 
         last_transaction = database.last_tran(new_user.username) 
         for db_key, ex_key in zip(last_transaction, ex_dict):
@@ -339,7 +283,7 @@ class SuccessfullSelling():
 
         current_cash = database.users_cash(new_user.username)
         last_transaction = database.last_tran(new_user.username) 
-        expected_cash = buy_stocks + last_transaction[DB_PRICE] * stock_amount
+        expected_cash = buy_stocks + last_transaction[DBC.PRICE] * stock_amount
         assert current_cash == expected_cash, (
             f"Expected db value of user's cash to be equal to {expected_cash}, actual amount: {current_cash}"
             )
@@ -348,7 +292,7 @@ class SuccessfullSelling():
 # Generate parametrized classes from template:
 generated_classes = generate_tests_cls_parametrize(SuccessfullSelling,
                                                    "stock_symbol, stock_amount",
-                                                   SP_SUCCESSFULL_SELL_CASES
+                                                   SC.SUCCESSFULL_SELL_CASES
                                                    )
 for class_name in generated_classes:
     locals()[class_name] = generated_classes[class_name]
@@ -366,7 +310,7 @@ class InvalidAmountUntypableSell():
     def pick_stock(self):
         """Pick random stock"""
 
-        yield choice(TEST_SYMBOLS)
+        yield choice(ShC.TEST_SYMBOLS)
 
 
     @pytest.fixture(autouse=True, scope="class")
@@ -381,8 +325,8 @@ class InvalidAmountUntypableSell():
         # Insert data into mock database
         # We can't check the price API so we use a mock value
         # COMMENT OUT THESE LINES if you have access to the app's database
-        database.mock_db_add_tran(new_user.username, pick_stock, 1, SP_MOCK_PRICE)
-        database.mock_db_change_cash_by(new_user.username, -SP_MOCK_PRICE)
+        database.mock_db_add_tran(new_user.username, pick_stock, 1, ShC.MOCK_PRICE)
+        database.mock_db_change_cash_by(new_user.username, -ShC.MOCK_PRICE)
 
         # Yield user's initial cash value before selling
         yield database.users_cash(new_user.username)
@@ -414,7 +358,7 @@ class InvalidAmountUntypableSell():
         the input type
         """
 
-        exceptions = [SP_UNTYPABLE_AMOUNT_CASES[0][1], SP_UNTYPABLE_AMOUNT_CASES[7][1]]
+        exceptions = [ShC.UNTYPABLE_AMOUNT_CASES[0][1], ShC.UNTYPABLE_AMOUNT_CASES[7][1]]
         error_image = sell_page.get_error_image()
         if case in exceptions:
             assert error_image is not None, (
@@ -430,11 +374,11 @@ class InvalidAmountUntypableSell():
     def test_firefox_error_message(self, sell_page, case):
         """Verify error image's message text for Firefox cases"""
 
-        exceptions = [SP_UNTYPABLE_AMOUNT_CASES[0][1], SP_UNTYPABLE_AMOUNT_CASES[7][1]]
+        exceptions = [ShC.UNTYPABLE_AMOUNT_CASES[0][1], ShC.UNTYPABLE_AMOUNT_CASES[7][1]]
         error_text = sell_page.get_error_image_text()
         if case in exceptions:
-            assert error_text == SP_EMPTY_STOCK_AMOUNT, (
-                f"Expected error image to have text {SP_EMPTY_STOCK_AMOUNT}, actual text: {error_text}"
+            assert error_text == SC.EMPTY_STOCK_AMOUNT, (
+                f"Expected error image to have text {SC.EMPTY_STOCK_AMOUNT}, actual text: {error_text}"
                 )
         else:
             assert error_text is None, (
@@ -461,15 +405,15 @@ class InvalidAmountUntypableSell():
         """Verify error image's message text for Chrome cases"""
 
         error_text = sell_page.get_error_image_text()
-        assert error_text == SP_EMPTY_STOCK_AMOUNT, (
-            f"Expected error image to have text {SP_EMPTY_STOCK_AMOUNT} in case {case}, actual text: {error_text}"
+        assert error_text == SC.EMPTY_STOCK_AMOUNT, (
+            f"Expected error image to have text {SC.EMPTY_STOCK_AMOUNT} in case {case}, actual text: {error_text}"
             )
         
 
     def test_no_db_transaction(self, database, new_user):
         """Verify that no transaction was added to the database table"""
 
-        # Have to check the type of posessed_stocks because of how query() method from database works
+        # Have to check the type of possessed_stocks because of how query() method from database works
         assert isinstance(database.transactions(new_user.username), dict), (
             "Expected user to have only one transaction - of buying the stock"
             )
@@ -487,7 +431,7 @@ class InvalidAmountUntypableSell():
 # Generate parametrized classes from template:
 generated_classes = generate_tests_cls_parametrize(InvalidAmountUntypableSell,
                                                    "stock_amount, case",
-                                                   SP_UNTYPABLE_AMOUNT_CASES
+                                                   ShC.UNTYPABLE_AMOUNT_CASES
                                                    )
 for class_name in generated_classes:
     locals()[class_name] = generated_classes[class_name]
@@ -504,7 +448,7 @@ class InvalidAmountTypableSell():
     def pick_stock(self):
         """Pick random stock"""
 
-        yield choice(TEST_SYMBOLS)
+        yield choice(ShC.TEST_SYMBOLS)
 
 
     @pytest.fixture(autouse=True, scope="class")
@@ -519,8 +463,8 @@ class InvalidAmountTypableSell():
         # Insert data into mock database
         # We can't check the price API so we use a mock value
         # COMMENT OUT THESE LINES if you have access to the app's database
-        database.mock_db_add_tran(new_user.username, pick_stock, 1, SP_MOCK_PRICE)
-        database.mock_db_change_cash_by(new_user.username, -SP_MOCK_PRICE)
+        database.mock_db_add_tran(new_user.username, pick_stock, 1, ShC.MOCK_PRICE)
+        database.mock_db_change_cash_by(new_user.username, -ShC.MOCK_PRICE)
 
         # Yield user's initial cash value before selling
         yield database.users_cash(new_user.username)
@@ -546,7 +490,7 @@ class InvalidAmountTypableSell():
     def test_typable_behaviour(self, sell_page, case):
         """Verify presence of error image"""
 
-        exceptions = [SP_TYPABLE_AMOUNT_CASES[3][1], SP_TYPABLE_AMOUNT_CASES[0][1], SP_TYPABLE_AMOUNT_CASES[4][1]]
+        exceptions = [ShC.TYPABLE_AMOUNT_CASES[3][1], ShC.TYPABLE_AMOUNT_CASES[0][1], ShC.TYPABLE_AMOUNT_CASES[4][1]]
         error_image = sell_page.get_error_image()
         if case in exceptions:
             assert error_image is not None, (
@@ -561,9 +505,9 @@ class InvalidAmountTypableSell():
     def test_error_message(self, sell_page, case):
         """Verify error image's message text"""
 
-        exceptions = {SP_TYPABLE_AMOUNT_CASES[3][1]: SP_EXCEED_AMOUNT,
-                      SP_TYPABLE_AMOUNT_CASES[0][1]: SP_ZERO_AMOUNT,
-                      SP_TYPABLE_AMOUNT_CASES[4][1]: SP_INVALID_STOCK_AMOUNT}
+        exceptions = {ShC.TYPABLE_AMOUNT_CASES[3][1]: SC.EXCEED_AMOUNT,
+                      ShC.TYPABLE_AMOUNT_CASES[0][1]: SC.ZERO_AMOUNT,
+                      ShC.TYPABLE_AMOUNT_CASES[4][1]: SC.INVALID_STOCK_AMOUNT}
         ex_error = None
         error_text = sell_page.get_error_image_text()
         if case in exceptions:
@@ -582,7 +526,7 @@ class InvalidAmountTypableSell():
     def test_no_db_transaction(self, database, new_user):
         """Verify that no transaction was added to the database table"""
 
-        # Have to check the type of posessed_stocks because of how query() method from database works
+        # Have to check the type of possessed_stocks because of how query() method from database works
         assert isinstance(database.transactions(new_user.username), dict), (
             "Expected user to have only one transaction - of buying the stock"
             )
@@ -600,7 +544,7 @@ class InvalidAmountTypableSell():
 # Generate parametrized classes from template:
 generated_classes = generate_tests_cls_parametrize(InvalidAmountTypableSell,
                                                    "stock_amount, case",
-                                                   SP_TYPABLE_AMOUNT_CASES
+                                                   ShC.TYPABLE_AMOUNT_CASES
                                                    )
 for class_name in generated_classes:
     locals()[class_name] = generated_classes[class_name]
@@ -615,7 +559,7 @@ class InvalidAmountBackendSell():
     def pick_stock(self):
         """Pick random stock"""
 
-        yield choice(TEST_SYMBOLS)
+        yield choice(ShC.TEST_SYMBOLS)
 
 
     @pytest.fixture(autouse=True, scope="class")
@@ -630,8 +574,8 @@ class InvalidAmountBackendSell():
         # Insert data into mock database
         # We can't check the price API so we use a mock value
         # COMMENT OUT THESE LINES if you have access to the app's database
-        database.mock_db_add_tran(new_user.username, pick_stock, 1, SP_MOCK_PRICE)
-        database.mock_db_change_cash_by(new_user.username, -SP_MOCK_PRICE)
+        database.mock_db_add_tran(new_user.username, pick_stock, 1, ShC.MOCK_PRICE)
+        database.mock_db_change_cash_by(new_user.username, -ShC.MOCK_PRICE)
 
         # Yield user's initial cash value before selling
         yield database.users_cash(new_user.username)
@@ -668,10 +612,10 @@ class InvalidAmountBackendSell():
     def test_backend_error_message(self, sell_page, case):
         """Verify error image's message text"""
 
-        cases = {SP_TYPABLE_AMOUNT_CASES[0][1]: SP_ZERO_AMOUNT,
-                 SP_UNTYPABLE_AMOUNT_CASES[0][1]: SP_EMPTY_STOCK_AMOUNT,
-                 SP_TYPABLE_AMOUNT_CASES[3][1]: SP_EXCEED_AMOUNT,
-                 "default": SP_INVALID_STOCK_AMOUNT}
+        cases = {ShC.TYPABLE_AMOUNT_CASES[0][1]: SC.ZERO_AMOUNT,
+                 ShC.UNTYPABLE_AMOUNT_CASES[0][1]: SC.EMPTY_STOCK_AMOUNT,
+                 ShC.TYPABLE_AMOUNT_CASES[3][1]: SC.EXCEED_AMOUNT,
+                 "default": SC.INVALID_STOCK_AMOUNT}
         ex_error = None
         error_text = sell_page.get_error_image_text()
         if case in cases:
@@ -685,7 +629,7 @@ class InvalidAmountBackendSell():
     def test_no_db_transaction(self, database, new_user):
         """Verify that no transaction was added to the database table"""
 
-        # Have to check the type of posessed_stocks because of how query() method from database works
+        # Have to check the type of possessed_stocks because of how query() method from database works
         assert isinstance(database.transactions(new_user.username), dict), (
             "Expected user to have only one transaction - of buying the stock"
             )
@@ -703,7 +647,7 @@ class InvalidAmountBackendSell():
 # Generate parametrized classes from template:
 generated_classes = generate_tests_cls_parametrize(InvalidAmountBackendSell,
                                                    "stock_amount, case",
-                                                   SP_TYPABLE_AMOUNT_CASES + SP_UNTYPABLE_AMOUNT_CASES
+                                                   ShC.TYPABLE_AMOUNT_CASES + ShC.UNTYPABLE_AMOUNT_CASES
                                                    )
 for class_name in generated_classes:
     locals()[class_name] = generated_classes[class_name]
@@ -743,12 +687,14 @@ class InvalidStockSymbolBackend():
     def test_backend_error_message(self, sell_page, case):
         """Verify error image's message text"""
 
+        cases = {ShC.INVALID_SYMBOL_CASES[0][1]: SC.EMPTY_STOCK_SYMBOL,
+                 "default": SC.INVALID_STOCK_SYMBOL}
         ex_error = None
         error_text = sell_page.get_error_image_text()
-        if case == SP_INVALID_SYMBOL_CASES[0][1]:
-            ex_error = SP_EMPTY_STOCK_SYMBOL
+        if case in cases:
+            ex_error = cases[case]
         else: 
-            ex_error = SP_INVALID_STOCK_SYMBOL
+            ex_error = cases["default"]
 
         assert error_text == ex_error, (
             f"Expected error image to have text {ex_error}, actual text: {error_text}"
@@ -768,15 +714,15 @@ class InvalidStockSymbolBackend():
         """Verify that user's cash value stays the same"""
 
         cash = database.users_cash(new_user.username)
-        assert cash == SP_INITIAL_CASH, (
-            f"Expected db value of user's cash to be equal to {SP_INITIAL_CASH}, actual amount: {cash}"
+        assert cash == ShC.INITIAL_CASH, (
+            f"Expected db value of user's cash to be equal to {ShC.INITIAL_CASH}, actual amount: {cash}"
             )
 
 
 # Generate parametrized classes from template:
 generated_classes = generate_tests_cls_parametrize(InvalidStockSymbolBackend,
                                                    "stock_symbol, case",
-                                                   SP_INVALID_SYMBOL_CASES
+                                                   ShC.INVALID_SYMBOL_CASES
                                                    )
 for class_name in generated_classes:
     locals()[class_name] = generated_classes[class_name]

@@ -3,58 +3,10 @@ import pytest
 from pages.register_page import RegisterPage
 from pages.urls import URLS
 from helpers import generate_tests_cls_parametrize, setup_page
+from constants import SharedConstants as ShC, DatabaseConstants as DBC, RegisterConstants as RC
 
 
-RP_EX_REG_UN_PH = "Username"
-RP_EX_USERNAME_VALUE = ""
-RP_EX_REG_PW_PH = "Password"
-RP_EX_PASSWORD_VALUE = ""
-RP_EX_REG_CONF_PH = "Password (again)"
-RP_EX_CONF_VALUE = ""
 
-RP_SUCC_REG_MSG = "Registered!"
-RP_ERROR_MSG_NO_PASSWORD = "MISSING PASSWORD"
-RP_ERROR_MSG_WRONG_PASSWORD = "PASSWORDS DON'T MATCH"
-RP_ERROR_MSG_NA_UN = "Username is not available"
-
-DB_USERNAME = "username"
-DB_CASH = "cash"
-
-RP_INITIAL_CASH = 10000.00
-
-RP_INVALID_USERNAME_CASES = [("", "Empty username"), 
-                             (" ", "Whitespaces only username (one)"),
-                             ("              ", "Whitespaces only username (few)"),
-                             ("placeholder_value", "Registering with the same username twice")]
-
-RP_INVALID_CONFIRM_CASES = [("", "Empty confirm"),
-                            ("drow$$4P", "Valid confirm but mismatch with password")]
-
-RP_INVALID_PASSWORD_CASES = [("", "Empty password"),
-                            pytest.param
-                            (" ", "White-space password (one)", marks=pytest.mark.xfail(
-        reason="CS50 team's implementation allows for passwords to consist of white spaces")),
-                             pytest.param
-                             ("   ", "White-space password (few)", marks=pytest.mark.xfail(
-        reason="CS50 team's implementation allows for passwords to consist of white spaces")),
-                             pytest.param
-                             ("1234567890", "Numbers only pasword", marks=pytest.mark.xfail(
-        reason="CS50 team's implementation allows for passwords to be numbers only")),
-                             pytest.param
-                             ("abcdefgh", "Letters only pasword", marks=pytest.mark.xfail(
-        reason="CS50 team's implementation allows for passwords to be letters only")),
-                             pytest.param
-                             ("!@#$%^&*()", "Special characters only pasword", marks=pytest.mark.xfail(
-        reason="CS50 team's implementation allows for passwords to be typographical only")),
-                             pytest.param
-                             ("1qaz@wsx", "No uppercase letter pasword", marks=pytest.mark.xfail(
-        reason="CS50 team's implementation allows for passwords to not have uppercase letters")),
-                             pytest.param
-                             ("a", "Less than 8 characters PW (border case 1)", marks=pytest.mark.xfail(
-        reason="CS50 team's implementation allows for passwords to be less than 8 characters")),
-                             pytest.param
-                             ("1qaz@ws", "Less than 8 characters PW (border case 2)", marks=pytest.mark.xfail(
-        reason="CS50 team's implementation allows for passwords to be less than 8 characters"))]
 
 
 class TestRegisterPageBasics():
@@ -88,7 +40,7 @@ class TestRegisterPageBasics():
         """Verify username input's default value"""
         
         un_input_value = reg_page.get_value(reg_page.username_input())
-        assert un_input_value == RP_EX_USERNAME_VALUE, (
+        assert un_input_value == RC.EX_USERNAME_VALUE, (
             f"Expected username input field to be empty, actual value: {un_input_value}"
             )
         
@@ -97,8 +49,8 @@ class TestRegisterPageBasics():
         """Verify username input's placeholder"""
 
         un_input_ph = reg_page.get_placeholder(reg_page.username_input())
-        assert un_input_ph == RP_EX_REG_UN_PH, (
-            f"Expected username input field placeholder text to be {RP_EX_REG_UN_PH}, actual value: {un_input_ph}"
+        assert un_input_ph == RC.EX_REG_UN_PH, (
+            f"Expected username input field placeholder text to be {RC.EX_REG_UN_PH}, actual value: {un_input_ph}"
             )
         
 
@@ -123,8 +75,8 @@ class TestRegisterPageBasics():
         """Verify password input's default value"""
 
         pw_input_value = reg_page.get_value(reg_page.password_input())
-        assert pw_input_value == RP_EX_PASSWORD_VALUE, (
-            f"Expected password input field to be {'empty' if RP_EX_PASSWORD_VALUE == '' else RP_EX_PASSWORD_VALUE}, " \
+        assert pw_input_value == RC.EX_PASSWORD_VALUE, (
+            f"Expected password input field to be {'empty' if RC.EX_PASSWORD_VALUE == '' else RC.EX_PASSWORD_VALUE}, " \
                 f"actual value: {pw_input_value}"
                 )
         
@@ -133,8 +85,8 @@ class TestRegisterPageBasics():
         """Verify password input's placeholder"""
 
         pw_input_ph = reg_page.get_placeholder(reg_page.password_input())
-        assert pw_input_ph == RP_EX_REG_PW_PH, (
-            f"Expected password input field placeholder text to be {RP_EX_REG_PW_PH}, actual value: {pw_input_ph}"
+        assert pw_input_ph == RC.EX_REG_PW_PH, (
+            f"Expected password input field placeholder text to be {RC.EX_REG_PW_PH}, actual value: {pw_input_ph}"
             )
         
         
@@ -159,7 +111,7 @@ class TestRegisterPageBasics():
         """Verify confirm input's default value"""
 
         conf_input_value = reg_page.get_value(reg_page.confirm_input())
-        assert conf_input_value == RP_EX_CONF_VALUE, (
+        assert conf_input_value == RC.EX_CONF_VALUE, (
             f"Expected password confirmation input field to be empty, actual value: {conf_input_value}"
             )
         
@@ -168,8 +120,8 @@ class TestRegisterPageBasics():
         """Verify confirm input's placeholder"""
 
         conf_input_ph = reg_page.get_placeholder(reg_page.confirm_input())
-        assert conf_input_ph == RP_EX_REG_CONF_PH, (
-            f"Expected password confirmation  input field placeholder text to be {RP_EX_REG_CONF_PH}, " \
+        assert conf_input_ph == RC.EX_REG_CONF_PH, (
+            f"Expected password confirmation  input field placeholder text to be {RC.EX_REG_CONF_PH}, " \
                 f"actual value: {conf_input_ph}"
                 )
         
@@ -216,6 +168,10 @@ class TestSuccesfullRegistration():
 
         yield database.user_data(login_creds.username)
 
+        # Delete new user data from database
+        database.mock_db_delete_tran_data(login_creds.username)
+        database.mock_db_delete_user_data(login_creds.username)
+
 
     def test_correct_redirection(self, reg_page):
         """Verify correct redirection route after successfull registration attempt"""
@@ -238,15 +194,15 @@ class TestSuccesfullRegistration():
         """Verify alert message"""
 
         alert_text = reg_page.get_flash().text
-        assert alert_text == RP_SUCC_REG_MSG, (
-            f"Expected successfully registered user to see {RP_SUCC_REG_MSG} alert , actual text: {alert_text}"
+        assert alert_text == RC.SUCC_REG_MSG, (
+            f"Expected successfully registered user to see {RC.SUCC_REG_MSG} alert , actual text: {alert_text}"
             )
 
 
     def test_db_new_user_data(self, login_creds, registration):
         """Verify that new user data was added to database"""
 
-        assert registration[DB_USERNAME] == login_creds.username, (
+        assert registration[DBC.USERNAME] == login_creds.username, (
             "Couldn't find a new user row in database"
             )
         
@@ -254,8 +210,8 @@ class TestSuccesfullRegistration():
     def test_db_new_user_cash_value(self, registration):
         """Verify new user cash default value"""
 
-        assert registration[DB_CASH] == RP_INITIAL_CASH, (
-            f"Expected new user to have {RP_INITIAL_CASH} amount of cash, actual amount: {registration[DB_CASH]}"
+        assert registration[DBC.CASH] == ShC.INITIAL_CASH, (
+            f"Expected new user to have {ShC.INITIAL_CASH} amount of cash, actual amount: {registration[DBC.CASH]}"
             )
         
         
@@ -285,7 +241,7 @@ class InvalidUsernameRegistration():
         Performs registration steps with given username and password
         """
 
-        if case == RP_INVALID_USERNAME_CASES[3][1]:
+        if case == RC.INVALID_USERNAME_CASES[3][1]:
             for i in range(2):
                 reg_page.open()
                 reg_page.register_new_user(login_creds.username, login_creds.password)
@@ -308,8 +264,8 @@ class InvalidUsernameRegistration():
         """Verify pop up's message"""
 
         alert_text = reg_page.get_browser_alert().text
-        assert alert_text == RP_ERROR_MSG_NA_UN, (
-            f"Expected for pop up alert to have text {RP_ERROR_MSG_NA_UN}, actual message: {alert_text}"
+        assert alert_text == RC.ERROR_MSG_NA_UN, (
+            f"Expected for pop up alert to have text {RC.ERROR_MSG_NA_UN}, actual message: {alert_text}"
             )
         
 
@@ -324,7 +280,7 @@ class InvalidUsernameRegistration():
 # Generate parametrized classes from template:
 generated_classes = generate_tests_cls_parametrize(InvalidUsernameRegistration,
                                                    "username, case",
-                                                   RP_INVALID_USERNAME_CASES
+                                                   RC.INVALID_USERNAME_CASES
                                                    )
 for class_name in generated_classes:
     locals()[class_name] = generated_classes[class_name]
@@ -337,7 +293,7 @@ I decided to leave them as is for now.
 """
 
 @pytest.mark.parametrize("password, case", 
-                         RP_INVALID_PASSWORD_CASES)
+                         RC.INVALID_PASSWORD_CASES)
 def test_invalid_password_registration(browser, database, login_creds, password, case):
     """
     Test registration process with invalid password values
@@ -349,8 +305,8 @@ def test_invalid_password_registration(browser, database, login_creds, password,
         f"Expected for app to display an error image with funny cat in case if invalid input: {case}"
         )
     
-    cases = {RP_INVALID_PASSWORD_CASES[0][1]: RP_ERROR_MSG_NO_PASSWORD,
-             "default": RP_ERROR_MSG_WRONG_PASSWORD}
+    cases = {RC.INVALID_PASSWORD_CASES[0][1]: RC.ERROR_MSG_NO_PASSWORD,
+             "default": RC.ERROR_MSG_WRONG_PASSWORD}
     ex_error = None
     error_text = reg_page.get_error_image_text()
     if case in cases:
@@ -400,8 +356,8 @@ class InvalidConfirmRegistration():
         """Verify error message"""
         
         error_text = reg_page.get_error_image_text()
-        assert error_text == RP_ERROR_MSG_WRONG_PASSWORD, (
-                f"Expected error image to have text {RP_ERROR_MSG_WRONG_PASSWORD}, actual text: {error_text}"
+        assert error_text == RC.ERROR_MSG_WRONG_PASSWORD, (
+                f"Expected error image to have text {RC.ERROR_MSG_WRONG_PASSWORD}, actual text: {error_text}"
                 )
         
 
@@ -416,7 +372,7 @@ class InvalidConfirmRegistration():
 # Generate parametrized classes from template:
 generated_classes = generate_tests_cls_parametrize(InvalidConfirmRegistration,
                                                    "confirm, case", 
-                                                   RP_INVALID_CONFIRM_CASES
+                                                   RC.INVALID_CONFIRM_CASES
                                                    )
 for class_name in generated_classes:
     locals()[class_name] = generated_classes[class_name]

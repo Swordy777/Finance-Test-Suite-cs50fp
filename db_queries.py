@@ -105,9 +105,9 @@ class DataBaseQueries():
                           username)
     
 
-    def posessed_stocks(self, username):
+    def possessed_stocks(self, username):
         """
-        Returns info about user's posessed stocks, including:
+        Returns info about user's possessed stocks, including:
         - name of the stock
         - stock amount for each stock
         - average price of each stock
@@ -123,8 +123,8 @@ class DataBaseQueries():
                           username)
     
 
-    def posessed_stock_names(self, username):
-        """Returns the symbols of stocks in posession"""
+    def possessed_stock_names(self, username):
+        """Returns the symbols of stocks in possession"""
 
         return self.query("""
                           SELECT DISTINCT stockname 
@@ -159,7 +159,7 @@ class DataBaseQueries():
 
 
     def stock_total(self, username):
-        """Returns the total amount spent on all of the stocks posessed by the given user"""
+        """Returns the total amount spent on all of the stocks possessed by the given user"""
 
         return self.query("""
                           SELECT ROUND(SUM(amount * price), 2) as amount_x_price 

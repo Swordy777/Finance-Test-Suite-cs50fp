@@ -1,29 +1,16 @@
 import pytest
-from random import random, randint, choice
+from random import randint, choice
 
 
 from pages.default_page import DefaultPage
 from pages.buy_page import BuyPage
 from pages.sell_page import SellPage
 from pages.urls import URLS
-from helpers import generate_tests_cls_parametrize, setup_page, lookup
+from helpers import setup_page, lookup
+from constants import SharedConstants as ShC, DefaultConstants as DC
 
 
-DT_HEADER_SYMBOL = "Symbol"
-DT_HEADER_CNAME = "Name"
-DT_HEADER_AMOUNT = "Shares"
-DT_HEADER_PRICE = "Price"
-DT_HEADER_TOTAL = "TOTAL"
-EXPECTED_HEADERS = [DT_HEADER_SYMBOL, DT_HEADER_CNAME, DT_HEADER_AMOUNT, DT_HEADER_PRICE, DT_HEADER_TOTAL]
 
-DP_INITIAL_CASH = 10000.00
-DP_MOCK_PRICE = 777.7
-
-DB_STOCK_NAME = "stockname"
-DB_STOCK_AMOUNT = "amount"
-DB_PRICE = "price"
-
-TEST_SYMBOLS = ["AAPL", "MSFT", "NFLX", "MCD"]
 
 
 class TestDefaultPageBasics():
@@ -65,8 +52,8 @@ class TestDefaultPageBasics():
         """Verify stock table header count"""
        
         header_count = len(dft_page.headers_names())
-        assert header_count == len(EXPECTED_HEADERS), (
-            f"Expected stock table to have {len(EXPECTED_HEADERS)} headers: {EXPECTED_HEADERS}; " \
+        assert header_count == len(DC.EXPECTED_HEADERS), (
+            f"Expected stock table to have {len(DC.EXPECTED_HEADERS)} headers: {DC.EXPECTED_HEADERS}; " \
                 f"actual header count: {header_count}"
                 )
         
@@ -74,7 +61,7 @@ class TestDefaultPageBasics():
     def test_header_titles(self, dft_page):
         """Verify stock table header titles"""
        
-        for header, ex_header in zip(dft_page.headers_names(), EXPECTED_HEADERS):
+        for header, ex_header in zip(dft_page.headers_names(), DC.EXPECTED_HEADERS):
             assert header == ex_header, (
                 f"Expected table header {header} to have a name {ex_header}"
                 )
@@ -126,8 +113,8 @@ class TestDefaultPageBasics():
         """Verify displayed default cash value"""
 
         cash = dft_page.cash_elm_value()
-        assert cash == DP_INITIAL_CASH, (
-            f"Expected cash value to be {DP_INITIAL_CASH}, actual value: {cash} for newly registered user"
+        assert cash == ShC.INITIAL_CASH, (
+            f"Expected cash value to be {ShC.INITIAL_CASH}, actual value: {cash} for newly registered user"
             )
 
 
@@ -135,8 +122,8 @@ class TestDefaultPageBasics():
         """Verify displayed default total value"""
 
         total = dft_page.total_elm_value()
-        assert total == DP_INITIAL_CASH, (
-            f"Expected TOTAL value to be {DP_INITIAL_CASH}, actual value: {total} for newly registered user"
+        assert total == ShC.INITIAL_CASH, (
+            f"Expected TOTAL value to be {ShC.INITIAL_CASH}, actual value: {total} for newly registered user"
             )
 
 
@@ -154,16 +141,16 @@ class TestTableDataDependencies():
     def set_cash(self, database, new_user):
         """Set user's cash to a test value"""
 
-        database.mock_db_change_cash_by(new_user.username, -DP_MOCK_PRICE)
+        database.mock_db_change_cash_by(new_user.username, -ShC.MOCK_PRICE)
 
 
     @pytest.fixture(scope="class")
     def mock_purchase_tran(self, database, new_user):
         """Add a mock buying transaction to user's transaction history"""
 
-        test_symbol = choice(TEST_SYMBOLS)
+        test_symbol = choice(ShC.TEST_SYMBOLS)
         test_amount = randint(1, 999)
-        database.mock_db_add_tran(new_user.username, test_symbol, test_amount, DP_MOCK_PRICE)
+        database.mock_db_add_tran(new_user.username, test_symbol, test_amount, ShC.MOCK_PRICE)
 
         yield (test_symbol, test_amount)
 
@@ -173,7 +160,7 @@ class TestTableDataDependencies():
         """Add a mock selling transaction to user's transaction history"""
 
         test_symbol, test_amount = mock_purchase_tran
-        database.mock_db_add_tran(new_user.username, test_symbol, test_amount, -DP_MOCK_PRICE)
+        database.mock_db_add_tran(new_user.username, test_symbol, test_amount, -ShC.MOCK_PRICE)
 
 
     @pytest.mark.xfail(reason="This test will fail if you don't have access to app's database")
@@ -182,8 +169,8 @@ class TestTableDataDependencies():
 
         dft_page.reload()
         cash = dft_page.cash_elm_value()
-        assert cash == DP_INITIAL_CASH - DP_MOCK_PRICE, (
-            f"Expected cash element value to be {DP_INITIAL_CASH - DP_MOCK_PRICE}, as is in database; actual value: {cash}"
+        assert cash == ShC.INITIAL_CASH - ShC.MOCK_PRICE, (
+            f"Expected cash element value to be {ShC.INITIAL_CASH - ShC.MOCK_PRICE}, as is in database; actual value: {cash}"
                 )
 
 
@@ -201,12 +188,12 @@ class TestTableDataDependencies():
     @pytest.mark.xfail(reason="This test will fail if you don't have access to app's database")
     # Requires mock_purchase_tran() to be in list of arguments, since this is where we want it to execute 
     def test_rows_match_with_purchases(self, dft_page, mock_purchase_tran):
-        """Verify that if user bought a stock, Default page would have the same amount of rows as unique posessed stocks"""
+        """Verify that if user bought a stock, Default page would have the same amount of rows as unique possessed stocks"""
 
         dft_page.reload()
         row_count = len(dft_page.stocktable_rows())
         assert row_count == 1, (
-            f"Expected stock table's row count to be equal to amount of unique posessed stocks; actual count: {row_count}"
+            f"Expected stock table's row count to be equal to amount of unique possessed stocks; actual count: {row_count}"
             )
 
 
@@ -217,10 +204,10 @@ class TestTableDataDependencies():
 
         dft_page.reload()
         test_symbol, test_amount = mock_purchase_tran
-        ex_table = {DT_HEADER_SYMBOL: test_symbol,
-                    DT_HEADER_CNAME: test_symbol,
-                    DT_HEADER_AMOUNT: test_amount,
-                    DT_HEADER_PRICE: DP_MOCK_PRICE}
+        ex_table = {DC.HEADER_SYMBOL: test_symbol,
+                    DC.HEADER_CNAME: test_symbol,
+                    DC.HEADER_AMOUNT: test_amount,
+                    DC.HEADER_PRICE: ShC.MOCK_PRICE}
         table_data = dft_page.stocktable_cells()
         for tkey, exkey in zip(table_data, ex_table):
             assert table_data[tkey] == ex_table[exkey], (
@@ -236,13 +223,13 @@ class TestTableDataDependencies():
 
         dft_page.reload()
         assert dft_page.stocktable_rows() is None, (
-            f"Expected stock table to have no rows after selling posessed stocks"
+            f"Expected stock table to have no rows after selling possessed stocks"
             )
         
 
 """
 Tests below were made before I decided to use the 'one test - one assert' concept.
-They might be too complex, inefficient or unreliable.
+They might be too unstable.
 I decided to leave them as is for now.
 """
 
@@ -268,7 +255,7 @@ def test_table_has_new_rows_after_buying_stocks(browser, stock_symbols, stock_am
         f"Expected stock table to have {len(stock_symbols)} rows of data after purchasing stocks; " \
             f"actual number of rows: {stock_rows}"
             )
-    db_results = database.posessed_stock_names(new_user.username)
+    db_results = database.possessed_stock_names(new_user.username)
     assert db_results is not None, (
         "Expected db table to have new rows of data after purchasing stocks; but it is empty"
         )
@@ -289,10 +276,10 @@ def test_table_has_correct_stock_info(browser, stock_symbol, stock_amount, compa
     stock_price = lookup(stock_symbol)['price']
     database.mock_db_add_tran(new_user.username, stock_symbol, stock_amount, stock_price)
     #"""
-    ex_table = {DT_HEADER_SYMBOL: stock_symbol,
-               DT_HEADER_CNAME: company_name,
-               DT_HEADER_AMOUNT: stock_amount,
-               DT_HEADER_PRICE: stock_price}
+    ex_table = {DC.HEADER_SYMBOL: stock_symbol,
+                DC.HEADER_CNAME: company_name,
+                DC.HEADER_AMOUNT: stock_amount,
+                DC.HEADER_PRICE: stock_price}
     dft_page = DefaultPage(browser, URLS.DEFAULT_URL)
     dft_page.open()
     table_data = dft_page.stocktable_cells()
@@ -304,10 +291,10 @@ def test_table_has_correct_stock_info(browser, stock_symbol, stock_amount, compa
         f"Expected for {tkey} in Stock table to match with expected data {ex_table[exkey]}; " \
             f"actual values for {tkey}: {table_data[tkey]}"
             )
-    ex_db = {DT_HEADER_SYMBOL: stock_symbol,
-             DT_HEADER_AMOUNT: stock_amount,
-             DT_HEADER_PRICE: stock_price}
-    db_records = database.posessed_stocks(new_user.username)
+    ex_db = {DC.HEADER_SYMBOL: stock_symbol,
+             DC.HEADER_AMOUNT: stock_amount,
+             DC.HEADER_PRICE: stock_price}
+    db_records = database.possessed_stocks(new_user.username)
     assert db_records is not None, (
         "Expected to find a new row in database containing the latest purchase for current user"
         )
@@ -328,10 +315,10 @@ def test_stock_total_should_equal_amount_x_price(stock_symbols, stock_amounts, b
     dft_page.open()
     table_data = dft_page.stocktable_cells()
     for row in table_data:
-        amount_x_price = round(row[DT_HEADER_AMOUNT] * row[DT_HEADER_PRICE], 2)
-        assert row[DT_HEADER_TOTAL] == amount_x_price, (
-            f"Expected stock's {row[DT_HEADER_SYMBOL]} amount to equal {amount_x_price}, " \
-                f"actual value: {row[DT_HEADER_TOTAL]}"
+        amount_x_price = round(row[DC.HEADER_AMOUNT] * row[DC.HEADER_PRICE], 2)
+        assert row[DC.HEADER_TOTAL] == amount_x_price, (
+            f"Expected stock's {row[DC.HEADER_SYMBOL]} amount to equal {amount_x_price}, " \
+                f"actual value: {row[DC.HEADER_TOTAL]}"
                 )
 
 
@@ -363,7 +350,7 @@ def test_table_has_no_data_if_purchased_and_sold(browser, stock_symbols, stock_a
     assert stock_rows is None, (
         "Expected stock table to have no rows of data if user sold all their stocks"
         )
-    db_results = database.posessed_stock_names(new_user.username)
+    db_results = database.possessed_stock_names(new_user.username)
     assert db_results is None, (
         "Expected db table to have no stocks with a sum greater than zero"
         )
@@ -388,8 +375,8 @@ def test_total_equals_cash_plus_stock_value(stock_symbols, stock_amounts, browse
     total_comp = dft_page.cash_elm_value()
     table_data = dft_page.stocktable_cells()
     for row in table_data:
-        total_comp += round(row[DT_HEADER_PRICE] * row[DT_HEADER_AMOUNT], 2)
-    assert total_after_buying == total_comp, (
+        total_comp += round(row[DC.HEADER_PRICE] * row[DC.HEADER_AMOUNT], 2)
+    assert total_after_buying == round(total_comp, 2), (
         f"Expected total to equal the sum of leftover cash + stock value ({total_comp}); actual value: {total_after_buying}"
         )
 

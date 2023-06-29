@@ -3,22 +3,7 @@ import pytest
 from pages.login_page import LoginPage
 from pages.urls import URLS
 from helpers import generate_tests_cls_parametrize, setup_page
-
-
-LP_EX_USERNAME_PH = "Username"
-LP_EX_USERNAME_VALUE = ""
-LP_EX_PASSWORD_PH = "Password"
-LP_EX_PASSWORD_VALUE = ""
-
-LP_EMPTY_USERNAME_MSG = "MUST PROVIDE USERNAME"
-LP_EMPTY_PASS_MSG = "MUST PROVIDE PASSWORD"
-LP_INVALID_CREDS_MSG = "INVALID USERNAME AND/OR PASSWORD"
-
-LP_INVALID_LOGIN_CASES = [("", "Empty username"),
-                          ("non-existent-username", "Non-existent username")]
-
-LP_INVALID_PASSWORD_CASES = [("", "Empty password"),
-                             ("non-existent-password", "Wrong password")]
+from constants import LoginConstants as LC
 
 
 class TestLoginPageBasics():
@@ -52,8 +37,8 @@ class TestLoginPageBasics():
         """Verify username input's default value"""
         
         un_input_value = login_page.get_value(login_page.username_input())
-        assert un_input_value == LP_EX_USERNAME_VALUE, (
-            f"Expected username input field to be {'empty' if LP_EX_USERNAME_VALUE == '' else LP_EX_USERNAME_VALUE}, " \
+        assert un_input_value == LC.EX_USERNAME_VALUE, (
+            f"Expected username input field to be {'empty' if LC.EX_USERNAME_VALUE == '' else LC.EX_USERNAME_VALUE}, " \
                 f"actual value: {un_input_value}"
                 )
         
@@ -62,8 +47,8 @@ class TestLoginPageBasics():
         """Verify username input's placeholder"""
 
         un_input_ph = login_page.get_placeholder(login_page.username_input())
-        assert un_input_ph == LP_EX_USERNAME_PH, (
-            f"Expected username input field placeholder text to be {LP_EX_USERNAME_PH}, actual value: {un_input_ph}"
+        assert un_input_ph == LC.EX_USERNAME_PH, (
+            f"Expected username input field placeholder text to be {LC.EX_USERNAME_PH}, actual value: {un_input_ph}"
             )
 
 
@@ -88,7 +73,7 @@ class TestLoginPageBasics():
         """Verify password input's default value"""
         
         pw_input_value = login_page.get_value(login_page.password_input())
-        assert pw_input_value == LP_EX_PASSWORD_VALUE, (
+        assert pw_input_value == LC.EX_PASSWORD_VALUE, (
             f"Expected password input field to be empty, actual value: {pw_input_value}"
             )
         
@@ -97,8 +82,8 @@ class TestLoginPageBasics():
         """Verify password input's placeholder"""
 
         pw_input_ph = login_page.get_placeholder(login_page.password_input())
-        assert pw_input_ph == LP_EX_PASSWORD_PH, (
-            f"Expected username input field placeholder text to be {LP_EX_PASSWORD_PH}, actual value: {pw_input_ph}"
+        assert pw_input_ph == LC.EX_PASSWORD_PH, (
+            f"Expected username input field placeholder text to be {LC.EX_PASSWORD_PH}, actual value: {pw_input_ph}"
             )
 
 
@@ -192,8 +177,8 @@ class InvalidLogin():
     def test_error_message(self, login_page, case):
         """Verify error message"""
 
-        cases = {LP_INVALID_LOGIN_CASES[0][1]: LP_EMPTY_USERNAME_MSG,
-                 "default": LP_INVALID_CREDS_MSG}
+        cases = {LC.INVALID_LOGIN_CASES[0][1]: LC.EMPTY_USERNAME_MSG,
+                 "default": LC.INVALID_CREDS_MSG}
         ex_error = None
         error_text = login_page.get_error_image_text()
         if case in cases:
@@ -209,7 +194,7 @@ class InvalidLogin():
 # Generate parametrized classes from template:
 generated_classes = generate_tests_cls_parametrize(InvalidLogin,
                                                    "username, case",
-                                                   LP_INVALID_LOGIN_CASES
+                                                   LC.INVALID_LOGIN_CASES
                                                    )
 for class_name in generated_classes:
     locals()[class_name] = generated_classes[class_name]
@@ -249,8 +234,8 @@ class InvalidPassword():
     def test_error_message(self, login_page, case):
         """Verify error message"""
 
-        cases = {LP_INVALID_PASSWORD_CASES[0][1]: LP_EMPTY_PASS_MSG,
-                 "default": LP_INVALID_CREDS_MSG}
+        cases = {LC.INVALID_PASSWORD_CASES[0][1]: LC.EMPTY_PASS_MSG,
+                 "default": LC.INVALID_CREDS_MSG}
         ex_error = None
         error_text = login_page.get_error_image_text()
         if case in cases:
@@ -266,7 +251,7 @@ class InvalidPassword():
 # Generate parametrized classes from template:
 generated_classes = generate_tests_cls_parametrize(InvalidPassword,
                                                    "password, case",
-                                                   LP_INVALID_PASSWORD_CASES
+                                                   LC.INVALID_PASSWORD_CASES
                                                    )
 for class_name in generated_classes:
     locals()[class_name] = generated_classes[class_name]

@@ -20,9 +20,9 @@ class SellPage(BasePage):
 
 
     def symbol_select_default_option(self):
-        """Returns stock symbol select's default option (first one)"""
+        """Returns stock symbol select's default option name (first one)"""
 
-        return self.retrieve_element_if_present(*SellPageLocators.SHARES_LIST_DEFAULT_OPTION)
+        return self.retrieve_element_if_present(*SellPageLocators.SHARES_LIST_DEFAULT_OPTION_NAME)
 
 
     def amount_input(self):

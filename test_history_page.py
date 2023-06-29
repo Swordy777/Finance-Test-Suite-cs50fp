@@ -1,30 +1,15 @@
 import pytest
 import time
-from random import random, randint, choice
+from random import randint, choice
 
 from pages.history_page import HistoryPage
 from pages.buy_page import BuyPage
 from pages.sell_page import SellPage
 from pages.urls import URLS
 from helpers import setup_page, lookup, compare_time
+from constants import SharedConstants as SC, DatabaseConstants as DBC, HistoryConstants as HC
 
 
-TIMEZONE_DIFF = 0
-
-HT_HEADER_SYMBOL = "Symbol"
-HT_HEADER_AMOUNT = "Shares"
-HT_HEADER_PRICE = "Price"
-HT_HEADER_DATETIME = "Transacted"
-EXPECTED_HEADERS = [HT_HEADER_SYMBOL, HT_HEADER_AMOUNT, HT_HEADER_PRICE, HT_HEADER_DATETIME]
-
-TEST_SYMBOLS = ["AAPL", "MSFT", "NFLX", "MCD"]
-
-DP_MOCK_PRICE = 777.7
-
-DB_STOCK_NAME = "stockname"
-DB_STOCK_AMOUNT = "amount"
-DB_PRICE = "price"
-DB_TIME = "timestamp"
 
 
 class TestHistoryBasics():
@@ -67,8 +52,8 @@ class TestHistoryBasics():
         """Verify history table header count"""
 
         headers = hist_page.history_table_headers()
-        assert len(headers) == len(EXPECTED_HEADERS), (
-            f"Expected for the History table to have {len(EXPECTED_HEADERS)} headers; " \
+        assert len(headers) == len(HC.EXPECTED_HEADERS), (
+            f"Expected for the History table to have {len(HC.EXPECTED_HEADERS)} headers; " \
                 f"actual number of headers: {len(headers)}"
                 )
 
@@ -79,8 +64,8 @@ class TestHistoryBasics():
         """
 
         headers = [header.text for header in hist_page.history_table_headers()]
-        assert headers == EXPECTED_HEADERS, (
-            f"Expected History table to have {EXPECTED_HEADERS} header names; actual list of header names: {headers}"
+        assert headers == HC.EXPECTED_HEADERS, (
+            f"Expected History table to have {HC.EXPECTED_HEADERS} header names; actual list of header names: {headers}"
             )
 
 
@@ -107,9 +92,9 @@ class TestHistoryTableDataDependencies():
     def mock_purchase_tran(self, database, new_user):
         """Add a mock buying transaction to user's transaction history"""
 
-        test_symbol = choice(TEST_SYMBOLS)
+        test_symbol = choice(SC.TEST_SYMBOLS)
         test_amount = randint(1, 999)
-        database.mock_db_add_tran(new_user.username, test_symbol, test_amount, DP_MOCK_PRICE)
+        database.mock_db_add_tran(new_user.username, test_symbol, test_amount, SC.MOCK_PRICE)
 
         yield (test_symbol, test_amount)
 
@@ -119,7 +104,7 @@ class TestHistoryTableDataDependencies():
         """Add a mock selling transaction to user's transaction history"""
 
         test_symbol, test_amount = mock_purchase_tran
-        database.mock_db_add_tran(new_user.username, test_symbol, test_amount, -DP_MOCK_PRICE)
+        database.mock_db_add_tran(new_user.username, test_symbol, test_amount, -SC.MOCK_PRICE)
 
 
     @pytest.mark.xfail(reason="This test will fail if you don't have access to app's database")
@@ -136,12 +121,12 @@ class TestHistoryTableDataDependencies():
     @pytest.mark.xfail(reason="This test will fail if you don't have access to app's database")
     # Requires mock_purchase_tran() to be in list of arguments, since this is where we want it to execute 
     def test_rows_match_with_purchases(self, hist_page, mock_purchase_tran):
-        """Verify that if user bought a stock, Default page would have the same amount of rows as unique posessed stocks"""
+        """Verify that if user bought a stock, Default page would have the same amount of rows as unique possessed stocks"""
 
         hist_page.reload()
         row_count = len(hist_page.history_rows())
         assert row_count == 1, (
-            f"Expected stock table's row count to be equal to amount of unique posessed stocks; actual count: {row_count}"
+            f"Expected stock table's row count to be equal to amount of unique possessed stocks; actual count: {row_count}"
             )
 
 
@@ -152,16 +137,16 @@ class TestHistoryTableDataDependencies():
 
         hist_page.reload()
         test_symbol, test_amount = mock_purchase_tran
-        ex_table = {HT_HEADER_SYMBOL: test_symbol,
-                    HT_HEADER_AMOUNT: test_amount,
-                    HT_HEADER_PRICE: DP_MOCK_PRICE,
-                    HT_HEADER_DATETIME: time.localtime()}
+        ex_table = {HC.HEADER_SYMBOL: test_symbol,
+                    HC.HEADER_AMOUNT: test_amount,
+                    HC.HEADER_PRICE: SC.MOCK_PRICE,
+                    HC.HEADER_DATETIME: time.localtime()}
         table_data = hist_page.history_table_data()
         for tkey, exkey in zip(table_data, ex_table):
-            if exkey == HT_HEADER_DATETIME:
+            if exkey == HC.HEADER_DATETIME:
                 assert compare_time(table_data[tkey]), (
                 f"Expected a new transaction row's timestamp in History table to be ±5 sec from current time, " \
-                    f"actual value: {table_data[HT_HEADER_DATETIME]}"
+                    f"actual value: {table_data[HC.HEADER_DATETIME]}"
                     )
             else:
                 assert table_data[tkey] == ex_table[exkey], (
@@ -177,16 +162,16 @@ class TestHistoryTableDataDependencies():
 
         hist_page.reload()
         test_symbol, test_amount = mock_purchase_tran
-        ex_table = {HT_HEADER_SYMBOL: test_symbol,
-                    HT_HEADER_AMOUNT: -test_amount,
-                    HT_HEADER_PRICE: DP_MOCK_PRICE,
-                    HT_HEADER_DATETIME: time.localtime()}
+        ex_table = {HC.HEADER_SYMBOL: test_symbol,
+                    HC.HEADER_AMOUNT: -test_amount,
+                    HC.HEADER_PRICE: SC.MOCK_PRICE,
+                    HC.HEADER_DATETIME: time.localtime()}
         table_data = hist_page.history_table_data()[-1]
         for tkey, exkey in zip(table_data, ex_table):
-            if exkey == HT_HEADER_DATETIME:
+            if exkey == HC.HEADER_DATETIME:
                 assert compare_time(table_data[tkey]), (
                 f"Expected a new transaction row's timestamp in History table to be ±5 sec from current time, " \
-                    f"actual value: {table_data[HT_HEADER_DATETIME]}"
+                    f"actual value: {table_data[HC.HEADER_DATETIME]}"
                     )
             else:
                 assert table_data[tkey] == ex_table[exkey], (
@@ -197,7 +182,7 @@ class TestHistoryTableDataDependencies():
 
 """
 Tests below were made before I decided to use the 'one test - one assert' concept.
-They might be too complex, inefficient or unreliable.
+They might be too unstable.
 I decided to leave them as is for now.
 """
 
@@ -212,10 +197,10 @@ def test_history_table_shows_record_of_buying(browser, stock_symbol, stock_amoun
     stock_price = lookup(stock_symbol)['price']
     database.mock_db_add_tran(new_user.username, stock_symbol, stock_amount, stock_price)
     #"""
-    ex_dict = {HT_HEADER_SYMBOL: stock_symbol,
-               HT_HEADER_AMOUNT: stock_amount,
-               HT_HEADER_PRICE: stock_price,
-               HT_HEADER_DATETIME: time.localtime()}
+    ex_dict = {HC.HEADER_SYMBOL: stock_symbol,
+               HC.HEADER_AMOUNT: stock_amount,
+               HC.HEADER_PRICE: stock_price,
+               HC.HEADER_DATETIME: time.localtime()}
     hist_page = HistoryPage(browser, URLS.HISTORY_URL)
     hist_page.open()
     hist_td = hist_page.history_table_data()
@@ -227,7 +212,7 @@ def test_history_table_shows_record_of_buying(browser, stock_symbol, stock_amoun
         "Expected to find new rows in database containing transaction info for current user"
         )
     for tkey, dkey, exkey in zip(hist_td, db_records, ex_dict):
-        if exkey != HT_HEADER_DATETIME:
+        if exkey != HC.HEADER_DATETIME:
             assert hist_td[tkey] == ex_dict[exkey], (
             f"Expected for {tkey} in History table to match with expected data {ex_dict[exkey]}; " \
                 f"actual values for {tkey}: {hist_td[tkey]}"
@@ -239,11 +224,11 @@ def test_history_table_shows_record_of_buying(browser, stock_symbol, stock_amoun
         else:
             assert compare_time(hist_td[tkey]), (
                 f"Expected a new transaction row's timestamp in History table to be ±5 sec from current time, " \
-                    f"actual value: {hist_td[DB_TIME]}"
+                    f"actual value: {hist_td[DBC.TIME]}"
                     )
             assert compare_time(db_records[dkey]), (
                 f"Expected a new transaction row's timestamp in database to be ±5 sec from current time, " \
-                    f"actual value: {db_records[DB_TIME]}"
+                    f"actual value: {db_records[DBC.TIME]}"
                     )
 
 
@@ -262,10 +247,10 @@ def test_history_table_shows_multiple_records_of_buying(browser, stock_symbols, 
     # Assemble expected values list
     ex_values = []
     for symbol, amount in zip(stock_symbols, stock_amounts):
-        ex_dict = {HT_HEADER_SYMBOL: symbol,
-                   HT_HEADER_AMOUNT: amount,
-                   HT_HEADER_PRICE: lookup(symbol)['price'],
-                   HT_HEADER_DATETIME: time.localtime()}
+        ex_dict = {HC.HEADER_SYMBOL: symbol,
+                   HC.HEADER_AMOUNT: amount,
+                   HC.HEADER_PRICE: lookup(symbol)['price'],
+                   HC.HEADER_DATETIME: time.localtime()}
         ex_values.append(ex_dict)
     hist_page = HistoryPage(browser, URLS.HISTORY_URL)
     hist_page.open()
@@ -279,7 +264,7 @@ def test_history_table_shows_multiple_records_of_buying(browser, stock_symbols, 
         )
     for table_row, db_row, ex_dict in zip(hist_td, db_records, ex_values):
         for tkey, dkey, exkey in zip(table_row, db_row, ex_dict):
-            if exkey != HT_HEADER_DATETIME:
+            if exkey != HC.HEADER_DATETIME:
                 assert table_row[tkey] == ex_dict[exkey], (
                 f"Expected for {tkey} in History table to match with expected data {ex_dict[exkey]}; " \
                     f"actual values for {tkey}: {table_row[tkey]}"
@@ -291,11 +276,11 @@ def test_history_table_shows_multiple_records_of_buying(browser, stock_symbols, 
             else:
                 assert compare_time(table_row[tkey]), (
                 f"Expected a new transaction row's timestamp in History table to be ±5 sec from current time, " \
-                    f"actual value: {table_row[DB_TIME]}"
+                    f"actual value: {table_row[DBC.TIME]}"
                     )
                 assert compare_time(db_row[dkey]), (
                 f"Expected a new transaction row's timestamp in database to be ±5 sec from current time, " \
-                    f"actual value: {db_records[DB_TIME]}"
+                    f"actual value: {db_records[DBC.TIME]}"
                     )
 
 
@@ -319,16 +304,16 @@ def test_history_table_shows_record_of_selling(browser, stock_symbol, stock_amou
     stock_price = lookup(stock_symbol)['price']
     database.mock_db_add_tran(new_user.username, stock_symbol, stock_amount * (-1), stock_price)
     #"""
-    ex_dict = {HT_HEADER_SYMBOL: stock_symbol,
-               HT_HEADER_AMOUNT: stock_amount * (-1),
-               HT_HEADER_PRICE: stock_price,
-               HT_HEADER_DATETIME: time.localtime()}
+    ex_dict = {HC.HEADER_SYMBOL: stock_symbol,
+               HC.HEADER_AMOUNT: stock_amount * (-1),
+               HC.HEADER_PRICE: stock_price,
+               HC.HEADER_DATETIME: time.localtime()}
     hist_page = HistoryPage(browser, URLS.HISTORY_URL)
     hist_page.open()
     hist_td = hist_page.history_table_data()[-1]
     db_records = database.last_tran(new_user.username)
     for tkey, dkey, exkey in zip(hist_td, db_records, ex_dict):
-        if exkey != HT_HEADER_DATETIME:
+        if exkey != HC.HEADER_DATETIME:
             assert hist_td[tkey] == ex_dict[exkey], (
             f"Expected for {tkey} in History table to match with expected data {ex_dict[exkey]}; " \
                 f"actual values for {tkey}: {hist_td[tkey]}"
@@ -340,9 +325,9 @@ def test_history_table_shows_record_of_selling(browser, stock_symbol, stock_amou
         else:
             assert compare_time(hist_td[tkey]), (
                 f"Expected a new transaction row's timestamp in History table to be ±5 sec from current time, " \
-                    f"actual value: {hist_td[DB_TIME]}"
+                    f"actual value: {hist_td[DBC.TIME]}"
                     )
             assert compare_time(db_records[dkey]), (
                 f"Expected a new transaction row's timestamp in database to be ±5 sec from current time, " \
-                    f"actual value: {db_records[DB_TIME]}"
+                    f"actual value: {db_records[DBC.TIME]}"
                     )

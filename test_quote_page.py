@@ -1,35 +1,13 @@
 import pytest
-from random import random, randint, choice
-import time
+from random import choice
 
 from pages.quote_page import QuotePage
 from pages.urls import URLS
 from helpers import setup_page
+from constants import SharedConstants as ShC, QuoteConstants as QC
 
 
-QP_EX_QUOTE_PH = "Symbol"
-QP_EX_QUOTE_VALUE = ""
 
-QP_EMPTY_STOCK_SYMBOL = "MISSING SYMBOL"
-QP_INVALID_STOCK_SYMBOL = "INVALID SYMBOL"
-
-TEST_SYMBOLS = ["AAPL", "MSFT", "NFLX", "MCD"]
-
-QP_INVALID_SYMBOL_CASES = [("", "Empty stock symbol"),
-                           (" ", "White-space stock symbol (one)"),
-                           ("   ", "White-space stock symbol (few)"),
-                           (randint(1, 999), "Digits only stock symbol"),
-                           (0, "Zero stock symbol"),
-                           (round(random()*10 + 0.1, 1), "Floating point number stock symbol"),
-                           (str(round(random()*10 + 0.1, 1)).replace(".",","), "Floating point number (comma) stock symbol"),
-                           (time.strftime("%d.%m.%Y", time.localtime()), "Date stock symbol"),
-                           ("NULL", "NULL stock symbol"),
-                           ("$@%?", "Special characters only stock symbol"),
-                           ("zyzx", "Non-existent stock symbol (only letters)"),
-                           ("$A23", "Non-existent stock symbol (combination)"),
-                           ("тест", "Other alphabets stock symbol #1"),
-                           ("片仮名", "Other alphabets stock symbol #2"),
-                           ("😍😍😍", "Emoji stock symbol")]
 
 
 class TestQuotePageBasics():
@@ -63,8 +41,8 @@ class TestQuotePageBasics():
         """Verify Quote symbol input's default value"""
 
         quote_input_value = quote_page.get_value(quote_page.quote_input())
-        assert quote_input_value == QP_EX_QUOTE_VALUE, (
-            f"Expected Quote input to be {'empty' if QP_EX_QUOTE_VALUE == '' else QP_EX_QUOTE_VALUE}, " \
+        assert quote_input_value == QC.EX_QUOTE_VALUE, (
+            f"Expected Quote input to be {'empty' if QC.EX_QUOTE_VALUE == '' else QC.EX_QUOTE_VALUE}, " \
                 f"actual value: {quote_input_value}"
                 )
         
@@ -73,8 +51,8 @@ class TestQuotePageBasics():
         """Verify Quote symbol input's placeholder value"""
 
         quote_input_ph = quote_page.get_placeholder(quote_page.quote_input())
-        assert quote_input_ph == QP_EX_QUOTE_PH, (
-            f"Expected Quote input placeholder text to be {QP_EX_QUOTE_PH}, actual value: {quote_input_ph}"
+        assert quote_input_ph == QC.EX_QUOTE_PH, (
+            f"Expected Quote input placeholder text to be {QC.EX_QUOTE_PH}, actual value: {quote_input_ph}"
             )
         
         
@@ -99,8 +77,8 @@ class TestQuotePageBasics():
         
 
 @pytest.mark.parametrize("stock_symbol",
-                         [(choice(TEST_SYMBOLS)),
-                          (choice(TEST_SYMBOLS).lower())],
+                         [(choice(ShC.TEST_SYMBOLS)),
+                          (choice(ShC.TEST_SYMBOLS).lower())],
                          scope="class")
 class TestValidQuote():
     """
@@ -141,7 +119,7 @@ class TestValidQuote():
         
 
 @pytest.mark.parametrize("stock_symbol, case",
-                         QP_INVALID_SYMBOL_CASES,
+                         ShC.INVALID_SYMBOL_CASES,
                          scope="class")
 class TestInvalidQuote():
     """
@@ -180,8 +158,8 @@ class TestInvalidQuote():
     def test_correct_error_image_text(self, quote_page, case):
         """Verify error image's message text"""
 
-        cases = {QP_INVALID_SYMBOL_CASES[0][1]: QP_EMPTY_STOCK_SYMBOL,
-                 "default": QP_INVALID_STOCK_SYMBOL}
+        cases = {ShC.INVALID_SYMBOL_CASES[0][1]: QC.EMPTY_STOCK_SYMBOL,
+                 "default": QC.INVALID_STOCK_SYMBOL}
         ex_error = None
         error_text = quote_page.get_error_image_text()
         if case in cases:

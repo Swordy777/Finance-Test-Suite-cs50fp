@@ -133,3 +133,4 @@ def new_user(browser, database, login_creds):
     # Requires additional queries if database schema is different
     database.mock_db_delete_tran_data(login_creds.username)
     database.mock_db_delete_user_data(login_creds.username)
+

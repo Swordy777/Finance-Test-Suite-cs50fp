@@ -65,7 +65,7 @@ class SellPageLocators():
     """Locators for Sell page elements"""
 
     SHARES_LIST = (By.CSS_SELECTOR, "select[name='symbol']")
-    SHARES_LIST_DEFAULT_OPTION = (By.CSS_SELECTOR, "select[name='symbol'] option:first-child")
+    SHARES_LIST_DEFAULT_OPTION_NAME = (By.CSS_SELECTOR, "select[name='symbol'] option:first-child")
     SHARE_AMOUNT_INPUT = (By.NAME, "shares")
     SELL_BUTTON = (By.XPATH, "//button[text()='Sell']")
 
