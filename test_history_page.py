@@ -7,7 +7,7 @@ from pages.buy_page import BuyPage
 from pages.sell_page import SellPage
 from pages.urls import URLS
 from helpers import setup_page, lookup, compare_time
-from constants import SharedConstants as SC, DatabaseConstants as DBC, HistoryConstants as HC
+from constants import SharedConstants as ShC, DatabaseConstants as DBC, HistoryConstants as HC
 
 
 
@@ -92,9 +92,9 @@ class TestHistoryTableDataDependencies():
     def mock_purchase_tran(self, database, new_user):
         """Add a mock buying transaction to user's transaction history"""
 
-        test_symbol = choice(SC.TEST_SYMBOLS)
+        test_symbol = choice(ShC.TEST_SYMBOLS)
         test_amount = randint(1, 999)
-        database.mock_db_add_tran(new_user.username, test_symbol, test_amount, SC.MOCK_PRICE)
+        database.mock_db_add_tran(new_user.username, test_symbol, test_amount, ShC.MOCK_PRICE)
 
         yield (test_symbol, test_amount)
 
@@ -104,7 +104,7 @@ class TestHistoryTableDataDependencies():
         """Add a mock selling transaction to user's transaction history"""
 
         test_symbol, test_amount = mock_purchase_tran
-        database.mock_db_add_tran(new_user.username, test_symbol, test_amount, -SC.MOCK_PRICE)
+        database.mock_db_add_tran(new_user.username, test_symbol, test_amount, -ShC.MOCK_PRICE)
 
 
     @pytest.mark.xfail(reason="This test will fail if you don't have access to app's database")
@@ -139,7 +139,7 @@ class TestHistoryTableDataDependencies():
         test_symbol, test_amount = mock_purchase_tran
         ex_table = {HC.HEADER_SYMBOL: test_symbol,
                     HC.HEADER_AMOUNT: test_amount,
-                    HC.HEADER_PRICE: SC.MOCK_PRICE,
+                    HC.HEADER_PRICE: ShC.MOCK_PRICE,
                     HC.HEADER_DATETIME: time.localtime()}
         table_data = hist_page.history_table_data()
         for tkey, exkey in zip(table_data, ex_table):
@@ -164,7 +164,7 @@ class TestHistoryTableDataDependencies():
         test_symbol, test_amount = mock_purchase_tran
         ex_table = {HC.HEADER_SYMBOL: test_symbol,
                     HC.HEADER_AMOUNT: -test_amount,
-                    HC.HEADER_PRICE: SC.MOCK_PRICE,
+                    HC.HEADER_PRICE: ShC.MOCK_PRICE,
                     HC.HEADER_DATETIME: time.localtime()}
         table_data = hist_page.history_table_data()[-1]
         for tkey, exkey in zip(table_data, ex_table):
