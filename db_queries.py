@@ -1,7 +1,7 @@
 class DataBaseQueries():
     """
     Contains a common method for executing queries which is basically a decorator
-    for the cursor.execute() from sqlite, and a bunch of frequently used 'common' queries    
+    for the cursor.execute() from sqlite, and a bunch of frequently used queries    
     """
     
     def __init__(self, cursor):
@@ -39,9 +39,8 @@ class DataBaseQueries():
                 return query_results
             
 
-    def mock_db_add_new_user(self, username, password):
+    def add_new_user(self, username, password):
         """Adds new user with given username and password to the users table"""
-
         return self.query("""
                           INSERT INTO USERS (username, 
                                              password) 
@@ -51,7 +50,7 @@ class DataBaseQueries():
                           password)
     
 
-    def mock_db_add_tran(self, username, symbol, amount, price):
+    def add_tran(self, username, symbol, amount, price):
         """Adds a new transaction for specified user with given stock data"""
 
         return self.query("""
@@ -67,7 +66,7 @@ class DataBaseQueries():
                           price)
 
 
-    def mock_db_change_cash_by(self, username, value):
+    def change_cash_by(self, username, value):
         """Changes user's cash value by specified amount"""
 
         cash = self.users_cash(username)
@@ -77,7 +76,7 @@ class DataBaseQueries():
                           cash + value, username)
 
 
-    def mock_db_delete_tran_data(self, username):
+    def delete_tran_data(self, username):
         """Delete all transactions for the given user"""
 
         return self.query("""
@@ -87,7 +86,7 @@ class DataBaseQueries():
                           username)
 
 
-    def mock_db_delete_user_data(self, username):
+    def delete_user_data(self, username):
         """Delete user data for the given user"""
         
         return self.query("""

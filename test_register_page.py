@@ -1,12 +1,8 @@
 import pytest
 
 from pages.register_page import RegisterPage
-from pages.urls import URLS
 from helpers import generate_tests_cls_parametrize, setup_page
-from constants import SharedConstants as ShC, DatabaseConstants as DBC, RegisterConstants as RC
-
-
-
+from constants import CommonConstants as CC, DatabaseConstants as DBC, RegisterConstants as RC, URLS
 
 
 class TestRegisterPageBasics():
@@ -16,7 +12,7 @@ class TestRegisterPageBasics():
 
     @pytest.fixture(autouse=True, scope="class")
     def reg_page(self, browser):
-        yield setup_page(RegisterPage, browser, URLS.REGISTER_URL)
+        return setup_page(RegisterPage, browser, URLS.REGISTER_URL)
 
 
     def test_has_username_input(self, reg_page):
@@ -90,7 +86,7 @@ class TestRegisterPageBasics():
             )
         
         
-    def test_has_confirmation_input(self, reg_page):
+    def test_has_confirm_input(self, reg_page):
         """Verify presence of confirm input"""
 
         assert reg_page.confirm_input() is not None, (
@@ -151,11 +147,11 @@ class TestSuccesfullRegistration():
 
     @pytest.fixture(autouse=True, scope="class")
     def reg_page(self, browser):
-        yield setup_page(RegisterPage, browser, URLS.REGISTER_URL)
+        return setup_page(RegisterPage, browser, URLS.REGISTER_URL)
 
 
     @pytest.fixture(autouse=True, scope="class")
-    def registration(self, reg_page, login_creds, database):
+    def registration(self, reg_page, login_creds, database, db_available):
         """
         Act fixture.
         Performs registration steps with given username and password
@@ -163,14 +159,11 @@ class TestSuccesfullRegistration():
 
         reg_page.register_new_user(login_creds.username, login_creds.password)
 
-        # Add new user to mock db
-        database.mock_db_add_new_user(login_creds.username, login_creds.password)
+        yield database.user_data(login_creds.username) if db_available else None
 
-        yield database.user_data(login_creds.username)
-
-        # Delete new user data from database
-        database.mock_db_delete_tran_data(login_creds.username)
-        database.mock_db_delete_user_data(login_creds.username)
+        if db_available:
+            database.delete_tran_data(login_creds.username)
+            database.delete_user_data(login_creds.username)
 
 
     def test_correct_redirection(self, reg_page):
@@ -199,6 +192,7 @@ class TestSuccesfullRegistration():
             )
 
 
+    @pytest.mark.db_reliant
     def test_db_new_user_data(self, login_creds, registration):
         """Verify that new user data was added to database"""
 
@@ -207,14 +201,16 @@ class TestSuccesfullRegistration():
             )
         
 
+    @pytest.mark.db_reliant
     def test_db_new_user_cash_value(self, registration):
         """Verify new user cash default value"""
 
-        assert registration[DBC.CASH] == ShC.INITIAL_CASH, (
-            f"Expected new user to have {ShC.INITIAL_CASH} amount of cash, actual amount: {registration[DBC.CASH]}"
+        assert registration[DBC.CASH] == CC.INITIAL_CASH, (
+            f"Expected new user to have {CC.INITIAL_CASH} amount of cash, actual amount: {registration[DBC.CASH]}"
             )
-        
-        
+
+
+    @pytest.mark.db_reliant
     def test_db_no_tran_history(self, login_creds, database):
         """Verify tran history is empty for newly registered user"""
         
@@ -231,25 +227,26 @@ class InvalidUsernameRegistration():
 
     @pytest.fixture(autouse=True, scope="class")
     def reg_page(self, browser, username, case):
-        yield setup_page(RegisterPage, browser, URLS.REGISTER_URL)
+        return setup_page(RegisterPage, browser, URLS.REGISTER_URL)
 
 
     @pytest.fixture(autouse=True, scope="class")
-    def registration(self, reg_page, login_creds, username, case, database):
+    def registration(self, reg_page, login_creds, username, case, database, db_available):
         """
         Act fixture.
         Performs registration steps with given username and password
         """
 
-        if case == RC.INVALID_USERNAME_CASES[3][1]:
+        if case == RC.INVALID_USERNAME_CASES[3][1]: # Existing username case
             for i in range(2):
                 reg_page.open()
                 reg_page.register_new_user(login_creds.username, login_creds.password)
                 if i == 0: 
                     reg_page.url_should_change_to(URLS.DEFAULT_URL)
+                    reg_page.go_to_other_page(URLS.LOGOUT_URL)
         else:
             reg_page.register_new_user(username, login_creds.password)
-        yield database.user_data(login_creds.username)
+        return database.user_data(login_creds.username) if db_available else None
 
 
     def test_has_browser_alert(self, reg_page, case):
@@ -269,12 +266,18 @@ class InvalidUsernameRegistration():
             )
         
 
-    def test_db_no_new_user(self, registration):
+    @pytest.mark.db_reliant
+    def test_db_no_new_user(self, registration, case):
         """Verify that no new user was added to database"""
 
-        assert registration is None, (
-            "Expected no new users to be added to database"
+        if case == RC.INVALID_USERNAME_CASES[3][1]: # Existing username case
+            assert isinstance(registration, dict), (
+            "Expected to have only one database record with the given username"
             )
+        else:
+            assert registration is None, (
+                "Expected no new users to be added to database"
+                )
 
 
 # Generate parametrized classes from template:
@@ -286,41 +289,69 @@ for class_name in generated_classes:
     locals()[class_name] = generated_classes[class_name]
 
 
-"""
-I wasn't able to find a way to implement xfail marks through @pytest.param() for class generator helper function.
-This is why invalid password registration tests are not using 'one test - one assert' concept.
-I decided to leave them as is for now.
-"""
-
-@pytest.mark.parametrize("password, case", 
-                         RC.INVALID_PASSWORD_CASES)
-def test_invalid_password_registration(browser, database, login_creds, password, case):
+class InvalidPasswordRegistration():
     """
     Test registration process with invalid password values
     """
 
-    reg_page = setup_page(RegisterPage, browser, URLS.REGISTER_URL)
-    reg_page.register_new_user(login_creds.username, password)
-    assert reg_page.get_error_image() is not None, (
-        f"Expected for app to display an error image with funny cat in case if invalid input: {case}"
-        )
+    @pytest.fixture(autouse=True, scope="class")
+    def reg_page(self, browser, password, case):
+        return setup_page(RegisterPage, browser, URLS.REGISTER_URL)
+
+
+    @pytest.fixture(autouse=True, scope="class")
+    def registration(self, reg_page, login_creds, password, database, db_available):
+        """
+        Act fixture.
+        Performs registration steps with given username and password
+        """
+
+        reg_page.register_new_user(login_creds.username, password)
+        return database.user_data(login_creds.username) if db_available else None
     
-    cases = {RC.INVALID_PASSWORD_CASES[0][1]: RC.ERROR_MSG_NO_PASSWORD,
-             "default": RC.ERROR_MSG_WRONG_PASSWORD}
-    ex_error = None
-    error_text = reg_page.get_error_image_text()
-    if case in cases:
-        ex_error = cases[case]
-    else:
-        ex_error = cases["default"]
+
+    def test_error_image_appears(self, reg_page, case):
+        """Verify presence of error image"""
+
+        error_image = reg_page.get_error_image()
+        assert error_image is not None, (
+            f"Expected for app to display an error image with funny cat in case if invalid input: {case}"
+            )
         
-    assert error_text == ex_error, (
-        f"Expected error image to have text {ex_error}, actual text: {error_text}"
-        )
+
+    def test_error_message(self, reg_page, case):
+        """Verify error message"""
+
+        cases = {RC.INVALID_PASSWORD_CASES[0][1]: RC.ERROR_MSG_NO_PASSWORD,
+                "default": RC.ERROR_MSG_WRONG_PASSWORD}
+        ex_error = None
+        error_text = reg_page.get_error_image_text()
+        if case in cases:
+            ex_error = cases[case]
+        else:
+            ex_error = cases["default"]
+            
+        assert error_text == ex_error, (
+            f"Expected error image to have text {ex_error}, actual text: {error_text}"
+            )
         
-    assert database.user_data(login_creds.username) is None, (
-        "Expected no new users to be added to database"
-        )
+
+    @pytest.mark.db_reliant
+    def test_db_no_new_user(self, registration):
+        """Verify that no new user was added to database"""
+
+        assert registration is None, (
+            "Expected no new users to be added to database"
+            )
+
+
+# Generate parametrized classes from template:
+generated_classes = generate_tests_cls_parametrize(InvalidPasswordRegistration,
+                                                   "password, case",
+                                                   RC.INVALID_PASSWORD_CASES
+                                                   )
+for class_name in generated_classes:
+    locals()[class_name] = generated_classes[class_name]
 
 
 class InvalidConfirmRegistration():
@@ -330,18 +361,18 @@ class InvalidConfirmRegistration():
 
     @pytest.fixture(autouse=True, scope="class")
     def reg_page(self, browser, confirm, case):
-        yield setup_page(RegisterPage, browser, URLS.REGISTER_URL)
+        return setup_page(RegisterPage, browser, URLS.REGISTER_URL)
 
 
     @pytest.fixture(autouse=True, scope="class")
-    def registration(self, reg_page, login_creds, confirm, database):
+    def registration(self, reg_page, login_creds, confirm, database, db_available):
         """
         Act fixture.
         Performs registration steps with given username, password and confirm
         """
 
         reg_page.register_new_user(login_creds.username, login_creds.password, confirm)
-        yield database.user_data(login_creds.username)
+        return database.user_data(login_creds.username) if db_available else None
 
 
     def test_error_image_appears(self, reg_page, case):
@@ -361,6 +392,7 @@ class InvalidConfirmRegistration():
                 )
         
 
+    @pytest.mark.db_reliant
     def test_db_no_new_user(self, registration):
         """Verify that no new user was added to database"""
 

@@ -1,9 +1,8 @@
 import pytest
 
 from pages.login_page import LoginPage
-from pages.urls import URLS
 from helpers import generate_tests_cls_parametrize, setup_page
-from constants import LoginConstants as LC
+from constants import LoginConstants as LC, URLS
 
 
 class TestLoginPageBasics():
@@ -13,7 +12,7 @@ class TestLoginPageBasics():
 
     @pytest.fixture(autouse=True, scope="class")
     def login_page(self, browser):
-        yield setup_page(LoginPage, browser, URLS.LOGIN_URL)
+        return setup_page(LoginPage, browser, URLS.LOGIN_URL)
 
 
     def test_has_username_input(self, login_page):
@@ -112,7 +111,7 @@ class TestSuccessfullLogin():
 
     @pytest.fixture(autouse=True, scope="class")
     def login_page(self, browser, new_user):
-        yield setup_page(LoginPage, browser, URLS.LOGIN_URL)
+        return setup_page(LoginPage, browser, URLS.LOGIN_URL)
 
 
     @pytest.fixture(autouse=True, scope="class")
@@ -148,7 +147,7 @@ class InvalidLogin():
 
     @pytest.fixture(autouse=True, scope="class")
     def login_page(self, username, case, browser):
-        yield setup_page(LoginPage, browser, URLS.LOGIN_URL)
+        return setup_page(LoginPage, browser, URLS.LOGIN_URL)
 
     
     @pytest.fixture(autouse=True, scope="class")
@@ -207,7 +206,8 @@ class InvalidPassword():
 
     @pytest.fixture(autouse=True, scope="class")
     def login_page(self, password, case, browser):
-        yield setup_page(LoginPage, browser, URLS.LOGIN_URL)
+        return setup_page(LoginPage, browser, URLS.LOGIN_URL)
+
 
     @pytest.fixture(autouse=True, scope="class")
     def login_action(self, login_page, password, login_creds):

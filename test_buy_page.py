@@ -2,9 +2,8 @@ import pytest
 from random import choice
 
 from pages.buy_page import BuyPage
-from pages.urls import URLS
-from helpers import generate_tests_cls_parametrize, setup_page
-from constants import SharedConstants as ShC, DatabaseConstants as DBC, BuyConstants as BC
+from helpers import generate_tests_cls_parametrize, setup_page, zip_by_key
+from constants import CommonConstants as CC, DatabaseConstants as DBC, BuyConstants as BC, URLS
 
 
 class TestBuyPageBasics():      
@@ -14,7 +13,7 @@ class TestBuyPageBasics():
 
     @pytest.fixture(autouse=True, scope="class")
     def buy_page(self, browser, new_user):
-        yield setup_page(BuyPage, browser, URLS.BUY_URL)
+        return setup_page(BuyPage, browser, URLS.BUY_URL)
 
 
     def test_has_stock_symbol_input(self, buy_page):
@@ -112,11 +111,11 @@ class SuccessfullPurchase():
 
     @pytest.fixture(autouse=True, scope="class")
     def buy_page(self, browser, new_user, stock_symbol, stock_amount):
-        yield setup_page(BuyPage, browser, URLS.BUY_URL)
+        return setup_page(BuyPage, browser, URLS.BUY_URL)
 
 
     @pytest.fixture(autouse=True, scope="class")
-    def purchase(self, buy_page, stock_symbol, stock_amount, database, new_user):
+    def purchase(self, buy_page, stock_symbol, stock_amount, db_available, database, new_user):
         """
         Act fixture.
         Performs purchase transaction with given Stock symbol and amount.
@@ -124,14 +123,8 @@ class SuccessfullPurchase():
 
         buy_page.buy_stock(stock_symbol, stock_amount)
 
-        # Insert data into mock database
-        # We can't check the price API so we use a mock value
-        # COMMENT OUT THESE LINES if you have access to the app's database
-        database.mock_db_add_tran(new_user.username, stock_symbol, stock_amount, ShC.MOCK_PRICE)
-        database.mock_db_change_cash_by(new_user.username, -ShC.MOCK_PRICE * stock_amount)
-
-        # Yield data returned by database
-        yield database.possessed_stocks(new_user.username)
+        # Return data returned by database
+        return database.possessed_stocks(new_user.username) if db_available else None
 
 
     def test_redirect_to_default_page(self, buy_page):
@@ -160,6 +153,7 @@ class SuccessfullPurchase():
             )
 
 
+    @pytest.mark.db_reliant
     def test_new_db_transaction(self, purchase):
         """Verify that new transaction was added to the database table"""
 
@@ -168,28 +162,33 @@ class SuccessfullPurchase():
             )
         
 
+    @pytest.mark.db_reliant
     def test_db_transaction_data(self, purchase, stock_symbol, stock_amount):
         """Verify correspondence of inputs and db data"""
         
         # Assemble expected values list
-        ex_dict = {DBC.STOCK_NAME: stock_symbol.upper(), DBC.STOCK_AMOUNT: stock_amount}
-        
-        # Can't test price value, because it's provided by API, for which we don't have testing tools
-        # Uncomment this line only if you have access to app's database
-        #ex_dict.update({DBC.PRICE: ShC.MOCK_PRICE})
+        ex_dict = {DBC.STOCK_NAME: stock_symbol.upper(), 
+                   DBC.STOCK_AMOUNT: stock_amount}
 
-        for db_key, ex_key in zip(purchase, ex_dict):
-            if db_key == ex_key:
-                assert purchase[db_key] == ex_dict[ex_key], (
-                    f"Expected {db_key} database value {purchase[db_key]} to be equal to expected value {ex_dict[ex_key]}"
+        matches = zip_by_key(purchase, ex_dict)
+        # All of the expected values should have a match
+        if len(matches) == len(ex_dict):
+            for match in matches:
+                assert match.actual == match.expected, (
+                f"Expected for {match.key} in database table record to match with expected data {match.expected}; " \
+                    f"actual value for {match.key}: {match.actual}"
                     )
+        else:
+            pytest.fail(reason="Expected to find all of the expected values in the database table record; " \
+                        f"missing: {[k for k, v in ex_dict.items() if k not in purchase.keys()]}")
 
 
+    @pytest.mark.db_reliant
     def test_db_cash_amount_changed(self, stock_amount, database, new_user, purchase):
         """Verify that user's cash amount has changed accordingly"""
 
         cash = database.users_cash(new_user.username)
-        expected_cash = ShC.INITIAL_CASH - purchase[DBC.PRICE] * stock_amount
+        expected_cash = round(CC.INITIAL_CASH - purchase[DBC.PRICE] * stock_amount, 2)
         assert cash == expected_cash, (
             f"Expected db value of user's cash to be equal to {expected_cash}, actual amount: {cash}"
             )
@@ -212,7 +211,7 @@ class InvalidSymbolPurchase():
 
     @pytest.fixture(autouse=True, scope="class")
     def buy_page(self, browser, new_user, stock_symbol, case):
-        yield setup_page(BuyPage, browser, URLS.BUY_URL)
+        return setup_page(BuyPage, browser, URLS.BUY_URL)
 
 
     @pytest.fixture(autouse=True, scope="class")
@@ -222,7 +221,6 @@ class InvalidSymbolPurchase():
         Performs purchase transaction with given Stock symbol and amount.
         """
 
-        # It's an invalid transaction, no need to add rows to mock db
         buy_page.buy_stock(stock_symbol, 1)
 
 
@@ -237,7 +235,7 @@ class InvalidSymbolPurchase():
     def test_correct_error_image_text(self, buy_page, case):
         """Verify error image's message text"""
 
-        cases = {ShC.INVALID_SYMBOL_CASES[0][1]: BC.EMPTY_STOCK_SYMBOL,
+        cases = {CC.INVALID_SYMBOL_CASES[0][1]: BC.EMPTY_STOCK_SYMBOL,
                  "default": BC.INVALID_STOCK_SYMBOL}
         ex_error = None
         error_text = buy_page.get_error_image_text()
@@ -251,6 +249,7 @@ class InvalidSymbolPurchase():
             )
 
     
+    @pytest.mark.db_reliant
     def test_no_db_transaction(self, database, new_user):
         """Verify that no transaction was added to the database table"""
 
@@ -259,19 +258,20 @@ class InvalidSymbolPurchase():
             )
 
 
+    @pytest.mark.db_reliant
     def test_db_cash_amount_same(self, database, new_user):
         """Verify that user's cash value stays the same"""
 
         cash = database.users_cash(new_user.username)
-        assert cash == ShC.INITIAL_CASH, (
-            f"Expected user's cash value in database to be equal to {ShC.INITIAL_CASH}, actual amount: {cash}"
+        assert cash == CC.INITIAL_CASH, (
+            f"Expected user's cash value in database to be equal to {CC.INITIAL_CASH}, actual amount: {cash}"
             )
 
 
 # Generate parametrized classes from template:
 generated_classes = generate_tests_cls_parametrize(InvalidSymbolPurchase,
                                                    "stock_symbol, case",
-                                                   ShC.INVALID_SYMBOL_CASES
+                                                   CC.INVALID_SYMBOL_CASES
                                                    )
 for class_name in generated_classes:
     locals()[class_name] = generated_classes[class_name]
@@ -280,14 +280,15 @@ for class_name in generated_classes:
 class InvalidAmountUntypableBuy():
     """
     Test app behaviour in case of invalid amount input.
-    Arbitrarily divided into "typable" and "untypable" types of values
-    based on Chrome browser input behaviour.
-    Due to that has some badly designed firefox conditionals here and there.
+    Arbitrarily divided into "typable" and "untypable" values
+    based on Chrome browser behaviour for "number" type inputs.
+    Due to firefox having different behaviour for the same type of input
+    utilizes some workarounds and conditionals for firefox tests
     """
 
     @pytest.fixture(autouse=True, scope="class")
     def buy_page(self, browser, new_user, stock_amount, case):
-        yield setup_page(BuyPage, browser, URLS.BUY_URL)
+        return setup_page(BuyPage, browser, URLS.BUY_URL)
 
 
     @pytest.fixture(autouse=True, scope="class")
@@ -297,8 +298,7 @@ class InvalidAmountUntypableBuy():
         Performs purchase transaction with given Stock symbol and amount.
         """
 
-        # It's an invalid transaction, no need to add rows to mock db
-        buy_page.buy_stock(choice(ShC.TEST_SYMBOLS), stock_amount)
+        buy_page.buy_stock(choice(CC.TEST_SYMBOLS), stock_amount)
 
 
     @pytest.mark.firefox_only
@@ -310,8 +310,8 @@ class InvalidAmountUntypableBuy():
         if value type differs from the input type
         """
 
-        exceptions = [ShC.UNTYPABLE_AMOUNT_CASES[0][1],
-                      ShC.UNTYPABLE_AMOUNT_CASES[7][1]]
+        exceptions = [CC.UNTYPABLE_AMOUNT_CASES[0][1],
+                      CC.UNTYPABLE_AMOUNT_CASES[7][1]]
         error_image = buy_page.get_error_image()
         if case in exceptions:
             assert error_image is not None, (
@@ -319,7 +319,7 @@ class InvalidAmountUntypableBuy():
                 )
         else:
             assert error_image is None, (
-                f"Expected for app to not proceed with purchase due to invalid amount value: {case}"
+                f"Expected for app to stay on Buy page and block redirect attempts with front-end means in case of: {case}"
                 )
 
 
@@ -327,8 +327,8 @@ class InvalidAmountUntypableBuy():
     def test_firefox_error_message(self, buy_page, case):
         """Verify error image's message text for Firefox cases"""
 
-        exceptions = [ShC.UNTYPABLE_AMOUNT_CASES[0][1],
-                      ShC.UNTYPABLE_AMOUNT_CASES[7][1]]
+        exceptions = [CC.UNTYPABLE_AMOUNT_CASES[0][1],
+                      CC.UNTYPABLE_AMOUNT_CASES[7][1]]
         error_text = buy_page.get_error_image_text()
         if case in exceptions:
             assert error_text == BC.EMPTY_STOCK_AMOUNT, (
@@ -336,7 +336,8 @@ class InvalidAmountUntypableBuy():
                 )
         else:
             assert error_text is None, (
-                f"Error message test only applies to cases: {exceptions}"
+                f"Error message is expected to display in cases: {exceptions} " \
+                f"but in case of {case} it also returned: {error_text}"
                 )
 
 
@@ -363,6 +364,7 @@ class InvalidAmountUntypableBuy():
             )
     
 
+    @pytest.mark.db_reliant
     def test_no_db_transaction(self, database, new_user):
         """Verify that no transaction was added to the database table"""
 
@@ -371,19 +373,20 @@ class InvalidAmountUntypableBuy():
             )
 
 
+    @pytest.mark.db_reliant
     def test_db_cash_amount_same(self, database, new_user):
         """Verify that user's cash value stays the same"""
 
         cash = database.users_cash(new_user.username)
-        assert cash == ShC.INITIAL_CASH, (
-            f"Expected db value of user's cash to be equal to {ShC.INITIAL_CASH}, actual amount: {cash}"
+        assert cash == CC.INITIAL_CASH, (
+            f"Expected db value of user's cash to be equal to {CC.INITIAL_CASH}, actual amount: {cash}"
             )
 
 
 # Generate parametrized classes from template:
 generated_classes = generate_tests_cls_parametrize(InvalidAmountUntypableBuy,
                                                    "stock_amount, case",
-                                                   ShC.UNTYPABLE_AMOUNT_CASES
+                                                   CC.UNTYPABLE_AMOUNT_CASES
                                                    )
 for class_name in generated_classes:
     locals()[class_name] = generated_classes[class_name]
@@ -398,7 +401,7 @@ class InvalidAmountTypableBuy():
 
     @pytest.fixture(autouse=True, scope="class")
     def buy_page(self, browser, new_user, stock_amount, case):
-        yield setup_page(BuyPage, browser, URLS.BUY_URL)
+        return setup_page(BuyPage, browser, URLS.BUY_URL)
 
 
     @pytest.fixture(autouse=True, scope="class")
@@ -408,15 +411,14 @@ class InvalidAmountTypableBuy():
         Performs purchase transaction with given Stock symbol and amount.
         """
 
-        # It's an invalid transaction, no need to add rows to mock db
-        buy_page.buy_stock(choice(ShC.TEST_SYMBOLS), stock_amount)
+        buy_page.buy_stock(choice(CC.TEST_SYMBOLS), stock_amount)
 
 
     def test_typable_behaviour(self, buy_page, case):
         """Verify presence of error image"""
 
-        exceptions = [ShC.TYPABLE_AMOUNT_CASES[3][1], 
-                      ShC.TYPABLE_AMOUNT_CASES[4][1]]
+        exceptions = [CC.TYPABLE_AMOUNT_CASES[3][1], 
+                      CC.TYPABLE_AMOUNT_CASES[4][1]]
         error_image = buy_page.get_error_image()
         if case in exceptions:
             assert error_image is not None, (
@@ -424,15 +426,15 @@ class InvalidAmountTypableBuy():
                 )
         else:
             assert error_image is None, (
-                f"Expected for app to not proceed with purchase due to invalid amount value: {case}"
+                f"Expected for app to stay on Buy page and block redirect attempts with front-end means in case of: {case}"
                 )
             
 
     def test_error_message(self, buy_page, case):
         """Verify error image's message text"""
 
-        exceptions = {ShC.TYPABLE_AMOUNT_CASES[3][1]: BC.EXCEED_CASH, 
-                      ShC.TYPABLE_AMOUNT_CASES[4][1]: BC.INVALID_STOCK_AMOUNT}
+        exceptions = {CC.TYPABLE_AMOUNT_CASES[3][1]: BC.EXCEED_CASH, 
+                      CC.TYPABLE_AMOUNT_CASES[4][1]: BC.INVALID_STOCK_AMOUNT}
         ex_error = None
         error_text = buy_page.get_error_image_text()
         if case in exceptions:
@@ -443,10 +445,12 @@ class InvalidAmountTypableBuy():
                 )
         else:
             assert error_text is None, (
-                f"Error message test only applies to cases: {exceptions.keys()}"
+                f"Error message is expected to display in cases: {[key for key in exceptions.keys()]} " \
+                f"but in case of {case} it also returned: {error_text}"
                 )
         
 
+    @pytest.mark.db_reliant
     def test_no_db_transaction(self, database, new_user):
         """Verify that no transaction was added to the database table"""
 
@@ -455,19 +459,20 @@ class InvalidAmountTypableBuy():
             )
 
 
+    @pytest.mark.db_reliant
     def test_db_cash_amount_same(self, database, new_user):
         """Verify that user's cash value stays the same"""
 
         cash = database.users_cash(new_user.username)
-        assert cash == ShC.INITIAL_CASH, (
-            f"Expected db value of user's cash to be equal to {ShC.INITIAL_CASH}, actual amount: {cash}"
+        assert cash == CC.INITIAL_CASH, (
+            f"Expected db value of user's cash to be equal to {CC.INITIAL_CASH}, actual amount: {cash}"
             )
 
 
 # Generate parametrized classes from template:
 generated_classes = generate_tests_cls_parametrize(InvalidAmountTypableBuy,
                                                    "stock_amount, case",
-                                                   ShC.TYPABLE_AMOUNT_CASES
+                                                   CC.TYPABLE_AMOUNT_CASES
                                                    )
 for class_name in generated_classes:
     locals()[class_name] = generated_classes[class_name]
@@ -480,7 +485,7 @@ class InvalidAmountBackendBuy():
 
     @pytest.fixture(autouse=True, scope="class")
     def buy_page(self, browser, new_user, stock_amount, case):
-        yield setup_page(BuyPage, browser, URLS.BUY_URL)
+        return setup_page(BuyPage, browser, URLS.BUY_URL)
 
 
     @pytest.fixture(autouse=True, scope="class")
@@ -492,9 +497,8 @@ class InvalidAmountBackendBuy():
         Performs purchase transaction with given Stock symbol and amount.
         """
 
-        # It's an invalid transaction, no need to add rows to mock db
         buy_page.set_type_to_text(buy_page.amount_input())
-        buy_page.buy_stock(choice(ShC.TEST_SYMBOLS), stock_amount)
+        buy_page.buy_stock(choice(CC.TEST_SYMBOLS), stock_amount)
 
 
     def test_backend_behaviour(self, buy_page, case):
@@ -508,9 +512,9 @@ class InvalidAmountBackendBuy():
     def test_backend_error_message(self, buy_page, case):
         """Verify error image's message text"""
 
-        cases = {ShC.TYPABLE_AMOUNT_CASES[0][1]: BC.ZERO_AMOUNT,
-                 ShC.UNTYPABLE_AMOUNT_CASES[0][1]: BC.EMPTY_STOCK_AMOUNT,
-                 ShC.TYPABLE_AMOUNT_CASES[3][1]: BC.EXCEED_CASH,
+        cases = {CC.TYPABLE_AMOUNT_CASES[0][1]: BC.ZERO_AMOUNT,
+                 CC.UNTYPABLE_AMOUNT_CASES[0][1]: BC.EMPTY_STOCK_AMOUNT,
+                 CC.TYPABLE_AMOUNT_CASES[3][1]: BC.EXCEED_CASH,
                  "default": BC.INVALID_STOCK_AMOUNT}
         ex_error = None
         error_text = buy_page.get_error_image_text()
@@ -525,6 +529,7 @@ class InvalidAmountBackendBuy():
             )
         
 
+    @pytest.mark.db_reliant
     def test_no_db_transaction(self, database, new_user):
         """Verify that no transaction was added to the database table"""
 
@@ -534,19 +539,20 @@ class InvalidAmountBackendBuy():
             )
 
 
+    @pytest.mark.db_reliant
     def test_db_cash_amount_same(self, database, new_user):
         """Verify that user's cash value stays the same"""
 
         cash = database.users_cash(new_user.username)
-        assert cash == ShC.INITIAL_CASH, (
-            f"Expected db value of user's cash to be equal to {ShC.INITIAL_CASH}, actual amount: {cash}"
+        assert cash == CC.INITIAL_CASH, (
+            f"Expected db value of user's cash to be equal to {CC.INITIAL_CASH}, actual amount: {cash}"
             )
         
         
 # Generate parametrized classes from template:
 generated_classes = generate_tests_cls_parametrize(InvalidAmountBackendBuy,
                                                    "stock_amount, case",
-                                                   ShC.UNTYPABLE_AMOUNT_CASES + ShC.TYPABLE_AMOUNT_CASES
+                                                   CC.UNTYPABLE_AMOUNT_CASES + CC.TYPABLE_AMOUNT_CASES
                                                    )
 for class_name in generated_classes:
     locals()[class_name] = generated_classes[class_name]

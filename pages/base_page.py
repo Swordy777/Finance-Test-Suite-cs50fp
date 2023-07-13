@@ -12,6 +12,8 @@ from .locators import BasePageLocators
 
 # Default timeout value for webpage element search (in seconds)
 DEFAULT_TIMEOUT = 4
+# Timeout for webpage redirect waits
+TRANSITION_TO = 60
 
 
 class BasePage():
@@ -72,6 +74,11 @@ class BasePage():
         """Returns the URL for the current page"""
         
         return self.browser.current_url
+    
+    def refresh(self):
+        """Refreshes current page"""
+
+        self.browser.refresh()
 
 
     def url_should_change_to(self, new_url):
@@ -81,7 +88,7 @@ class BasePage():
         """
         
         try:
-            WebDriverWait(self.browser, self.timeout).until(EC.url_to_be(new_url))
+            WebDriverWait(self.browser, TRANSITION_TO).until(EC.url_to_be(new_url))
         except TimeoutException:
             return False
         return True
@@ -239,8 +246,10 @@ class BasePage():
         Checks if cell value is formatted as a currency by using regular expression.
         Returns True if it is, and False if it isn't
         """
-        
-        if re.fullmatch(r"^\$(\d{0,3}[,])*(\d{0,3}[.]){1}\d+", currency):
+
+        # This re expression will only recognize 'clean' currency values, like: $12,345.00
+        # If you have some text around the currency, the re expression has to be changed
+        if re.fullmatch(r"^\$(\d{1,3}){1}(\,\d{3})*(\.\d{2})", currency):
             return True
         return False
     
@@ -263,11 +272,15 @@ class BasePage():
         """
         Helper function for organize_cell_data()
         Strips cell value of currency formatting and casts it to float
+        Only works with the basic re expression of is_currency()
+        If the expression has been changed, this helper function
+        has to be changed accordingly so it would return a float value
         """
 
         currency = currency.replace("$","")
         currency = currency.replace(",","")
         currency = round(float(currency), 2)
+        
         return currency
 
 

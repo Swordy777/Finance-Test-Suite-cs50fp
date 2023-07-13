@@ -1,10 +1,48 @@
-import pytest
 import time
 from random import random, uniform, randint, choice
 
-from pages.urls import URLS
 
-class SharedConstants():
+class URLS():
+    """Defines base URL and available routes"""
+
+    BASEURL = "https://finance.cs50.net"
+
+    DEFAULT_URL = BASEURL + "/"
+    LOGIN_URL = BASEURL + "/login"
+    LOGOUT_URL = BASEURL + "/logout"
+    REGISTER_URL = BASEURL + "/register"
+    QUOTE_URL = BASEURL + "/quote"
+    BUY_URL = BASEURL + "/buy"
+    SELL_URL = BASEURL + "/sell"
+    HISTORY_URL = BASEURL + "/history"
+
+
+class DatabaseConstants():
+    """Database column names"""
+    # Path to app's database file
+    DATABASE_PATH = "project/database.db"
+
+
+    # Database table column name for each transaction's stock symbol
+    STOCK_NAME = "stockname"
+
+    # Database table column name for each transaction's stock amount
+    STOCK_AMOUNT = "amount"
+
+    # Database table column name for each transaction's stock price
+    PRICE = "price"
+
+    # Database table column name for each transaction's timestamp
+    TIME = "timestamp"
+
+    # Database table column name for usernames
+    USERNAME = "username"
+
+    # Database table column name for each user's cash
+    CASH = "cash"
+
+
+class CommonConstants():
     """Constants which are shared among multiple test modules"""
 
     # Small list of possible valid stock symbols
@@ -55,33 +93,13 @@ class SharedConstants():
     TYPABLE_AMOUNT_CASES = [(0, "Zero amount"),
                             (randint(-10000, -1), "Negative amount"),
                             (round(int(random()*10) + uniform(0.1, 0.9), 1), "Float amount (period)"),
-                            (randint(1000, 10000), "Buying more than affordable"),
-                            (round((random()*10), 0), "Fractionless float")]
+                            (randint(1000, 10000), "More than available/affordable"),
+                            (round((random()*10 + 1), 0), "Fractionless float")]
     
 
-class DatabaseConstants():
-    """Database column names"""
-    # Path to app's database file. By default is set to the mock database
-    DATABASE_PATH = "mock.db"
-
-
-    # Database table column name for each transaction's stock symbol
-    STOCK_NAME = "stockname"
-
-    # Database table column name for each transaction's stock amount
-    STOCK_AMOUNT = "amount"
-
-    # Database table column name for each transaction's stock price
-    PRICE = "price"
-
-    # Database table column name for each transaction's timestamp
-    TIME = "timestamp"
-
-    # Database table column name for usernames
-    USERNAME = "username"
-
-    # Database table column name for each user's cash
-    CASH = "cash"
+    # Test cases for table tests
+    TABLE_CASES = [([choice([TEST_SYMBOLS[0], TEST_SYMBOLS[3]]), choice([TEST_SYMBOLS[1], TEST_SYMBOLS[2]])], 
+                    [randint(1, 5), randint(1, 5)])]
 
 
 class BuyConstants():
@@ -124,12 +142,12 @@ class BuyConstants():
 
 
     # Test values for cases of succesfull purchases
-    SUCCESSFULL_PURCHASE_CASES = [(choice(SharedConstants.TEST_SYMBOLS), 1),
-                                  (choice(SharedConstants.TEST_SYMBOLS).lower(), 10)]
+    SUCCESSFULL_PURCHASE_CASES = [(choice(CommonConstants.TEST_SYMBOLS), 1),
+                                  (choice(CommonConstants.TEST_SYMBOLS).lower(), 10)]
 
 
-class CommonConstants():
-    """Constants for tests from the 'common' module"""
+class NavigationsConstants():
+    """Constants for tests from the 'navigation' module"""
 
     # Expected Logo text for each page the user visits
     CS50_LOGO = "C$50Finance"
@@ -274,7 +292,6 @@ class RegisterConstants():
     # Expected flash alert message after succesfull registration
     SUCC_REG_MSG = "Registered!"
 
-
     # Expected error message for registration attempts with empty password
     ERROR_MSG_NO_PASSWORD = "MISSING PASSWORD"
 
@@ -297,30 +314,14 @@ class RegisterConstants():
 
     # Test values for cases of invalid password input
     INVALID_PASSWORD_CASES = [("", "Empty password"),
-                              pytest.param
-                              (" ", "White-space password (one)", marks=pytest.mark.xfail(
-                                  reason="CS50 team's implementation allows for passwords to consist of white spaces")),
-                              pytest.param
-                              ("   ", "White-space password (few)", marks=pytest.mark.xfail(
-                                  reason="CS50 team's implementation allows for passwords to consist of white spaces")),
-                              pytest.param
-                              ("1234567890", "Numbers only pasword", marks=pytest.mark.xfail(
-                                  reason="CS50 team's implementation allows for passwords to be numbers only")),
-                              pytest.param
-                              ("abcdefgh", "Letters only pasword", marks=pytest.mark.xfail(
-                                  reason="CS50 team's implementation allows for passwords to be letters only")),
-                              pytest.param
-                              ("!@#$%^&*()", "Special characters only pasword", marks=pytest.mark.xfail(
-                                  reason="CS50 team's implementation allows for passwords to be typographical only")),
-                              pytest.param
-                              ("1qaz@wsx", "No uppercase letter pasword", marks=pytest.mark.xfail(
-                                  reason="CS50 team's implementation allows for passwords to not have uppercase letters")),
-                              pytest.param
-                              ("a", "Less than 8 characters PW (border case 1)", marks=pytest.mark.xfail(
-                                  reason="CS50 team's implementation allows for passwords to be less than 8 characters")),
-                              pytest.param
-                              ("1qaz@ws", "Less than 8 characters PW (border case 2)", marks=pytest.mark.xfail(
-                                  reason="CS50 team's implementation allows for passwords to be less than 8 characters"))]
+                              (" ", "White-space password (one)"), 
+                              ("   ", "White-space password (few)"), 
+                              ("1234567890", "Numbers only pasword"),
+                              ("abcdefgh", "Letters only pasword"), 
+                              ("!@#$%^&*()", "Special characters only pasword"), 
+                              ("1qaz@wsx", "No uppercase letter pasword"), 
+                              ("a", "Less than 8 characters PW (border case 1)"), 
+                              ("1qaz@ws", "Less than 8 characters PW (border case 2)")]
     
 
 class SellConstants():
@@ -360,8 +361,8 @@ class SellConstants():
 
 
     # Test values for cases of succesfull selling
-    SUCCESSFULL_SELL_CASES = [(choice(SharedConstants.TEST_SYMBOLS), 1)]
+    SUCCESSFULL_SELL_CASES = [(choice(CommonConstants.TEST_SYMBOLS), 1)]
 
     # Test values for cases of succesfull selling (multiple stocks)
-    SUCCESSFULL_BATCH_SELLS = [([choice(SharedConstants.TEST_SYMBOLS), choice(SharedConstants.TEST_SYMBOLS).lower()], 
+    SUCCESSFULL_BATCH_SELLS = [([choice(CommonConstants.TEST_SYMBOLS), choice(CommonConstants.TEST_SYMBOLS).lower()], 
                                 [1, 2])]

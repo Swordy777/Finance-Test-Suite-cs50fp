@@ -2,12 +2,8 @@ import pytest
 from random import choice
 
 from pages.quote_page import QuotePage
-from pages.urls import URLS
 from helpers import setup_page
-from constants import SharedConstants as ShC, QuoteConstants as QC
-
-
-
+from constants import CommonConstants as CC, QuoteConstants as QC, URLS
 
 
 class TestQuotePageBasics():
@@ -17,7 +13,7 @@ class TestQuotePageBasics():
 
     @pytest.fixture(autouse=True, scope="class")
     def quote_page(self, browser, new_user):
-        yield setup_page(QuotePage, browser, URLS.QUOTE_URL)
+        return setup_page(QuotePage, browser, URLS.QUOTE_URL)
 
 
     def test_has_quote_input(self, quote_page):
@@ -77,8 +73,8 @@ class TestQuotePageBasics():
         
 
 @pytest.mark.parametrize("stock_symbol",
-                         [(choice(ShC.TEST_SYMBOLS)),
-                          (choice(ShC.TEST_SYMBOLS).lower())],
+                         [(choice(CC.TEST_SYMBOLS)),
+                          (choice(CC.TEST_SYMBOLS).lower())],
                          scope="class")
 class TestValidQuote():
     """
@@ -87,7 +83,7 @@ class TestValidQuote():
 
     @pytest.fixture(autouse=True, scope="class")
     def quote_page(self, browser, new_user, stock_symbol):
-        yield setup_page(QuotePage, browser, URLS.QUOTE_URL)
+        return setup_page(QuotePage, browser, URLS.QUOTE_URL)
 
 
     @pytest.fixture(autouse=True, scope="class")
@@ -102,7 +98,7 @@ class TestValidQuote():
         """Verify requesting stock info returns a resulting string"""
         
         assert get_stock_quote is not None, (
-            "Expected Quote page to provide info on the referred stock symbol"
+            "Expected to see a text string with information about given stock; received no data or data in other form"
             )
         
 
@@ -110,7 +106,7 @@ class TestValidQuote():
         """Verify resulting string has company name in it"""
         
         # This test is for company name, but the variable is stock symbol!
-        # It is like that because lookup() copies the stock symbol into company name variable
+        # It is like that because lookup() helper func from finance p-set currently uses stock symbol as company name
         # But if it changes someday this test would be failing
         assert get_stock_quote.text.find('(' + stock_symbol + ')'), (
             f"Expected to find the following company name in the result of a stock check: {'(' + stock_symbol + ')'}, " \
@@ -119,7 +115,7 @@ class TestValidQuote():
         
 
 @pytest.mark.parametrize("stock_symbol, case",
-                         ShC.INVALID_SYMBOL_CASES,
+                         CC.INVALID_SYMBOL_CASES,
                          scope="class")
 class TestInvalidQuote():
     """
@@ -128,7 +124,7 @@ class TestInvalidQuote():
 
     @pytest.fixture(autouse=True, scope="class")
     def quote_page(self, browser, new_user, stock_symbol, case):
-        yield setup_page(QuotePage, browser, URLS.QUOTE_URL)
+        return setup_page(QuotePage, browser, URLS.QUOTE_URL)
 
 
     @pytest.fixture(autouse=True, scope="class")
@@ -158,7 +154,7 @@ class TestInvalidQuote():
     def test_correct_error_image_text(self, quote_page, case):
         """Verify error image's message text"""
 
-        cases = {ShC.INVALID_SYMBOL_CASES[0][1]: QC.EMPTY_STOCK_SYMBOL,
+        cases = {CC.INVALID_SYMBOL_CASES[0][1]: QC.EMPTY_STOCK_SYMBOL,
                  "default": QC.INVALID_STOCK_SYMBOL}
         ex_error = None
         error_text = quote_page.get_error_image_text()

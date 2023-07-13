@@ -1,11 +1,6 @@
 import pytest
-import csv
-import datetime
-import pytz
-import requests
-import urllib.parse
-import uuid
 import time
+from collections import namedtuple
 
 def generate_tests_cls_parametrize(cls: type, parameter_names: str, values: list[tuple]):
     """
@@ -51,40 +46,6 @@ def setup_page(class_name, browser, link):
     return page
 
 
-def lookup(symbol):
-    """Look up function from the CS50's Finance problem set, as of June 2023"""
-
-    # Prepare API request
-    symbol = symbol.upper()
-    end = datetime.datetime.now(pytz.timezone("US/Eastern"))
-    start = end - datetime.timedelta(days=7)
-
-    # Yahoo Finance API
-    url = (
-        f"https://query1.finance.yahoo.com/v7/finance/download/{urllib.parse.quote_plus(symbol)}"
-        f"?period1={int(start.timestamp())}"
-        f"&period2={int(end.timestamp())}"
-        f"&interval=1d&events=history&includeAdjustedClose=true"
-    )
-
-    # Query API
-    try:
-        response = requests.get(url, cookies={"session": str(uuid.uuid4())}, headers={"User-Agent": "python-requests", "Accept": "*/*"})
-        response.raise_for_status()
-
-        # CSV header: Date,Open,High,Low,Close,Adj Close,Volume
-        quotes = list(csv.DictReader(response.content.decode("utf-8").splitlines()))
-        quotes.reverse()
-        price = round(float(quotes[0]["Adj Close"]), 2)
-        return {
-            "name": symbol,
-            "price": price,
-            "symbol": symbol
-        }
-    except (requests.RequestException, ValueError, KeyError, IndexError):
-        return None
-
-
 def compare_time(t1, tdiff=2, delay=5):
     """
     Compares t1 argument with current time.
@@ -110,4 +71,12 @@ def compare_time(t1, tdiff=2, delay=5):
         return True
     return False
 
+
+def zip_by_key(actual, expected):
+    """Creates a list of tuples only of values from two dictionaries which have the same key"""
+    
+    combined = namedtuple('combined', ['key', 'actual', 'expected'])
+
+    matches = [combined(k, actual[k], v) for (k, v) in expected.items() if k in actual]
+    return matches
 
