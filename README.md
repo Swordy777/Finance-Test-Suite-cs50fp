@@ -25,7 +25,6 @@ This Test Suite consists of over **600+** tests made for different features of t
 This project utilizes Selenium library to emulate user actions in a browser window; allowing to produce and execute various scenarios and test cases. Additionally, Pytest framework allows one to choose specific pre-conditions, levels of logging detail and to decide which sets of tests will be executed. 
 
 
-
 ## Technologies Used
 - Python language
 - Pytest framework
