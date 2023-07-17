@@ -1,5 +1,5 @@
 # Finance P-set Test Suite (CS50 Final Project assignment)
-> Since my background is in the quality assurance field, I decided that the best way to exercise everything I learned was by making a project that would be related to testing. My Final Project for [CS50 Course](https://cs50.harvard.edu/x/2023/) is a set of autotests for the last P-set of the course, [Finance](https://cs50.harvard.edu/x/2023/psets/9/finance/).
+> Since my background is in the quality assurance field, I decided that the best way to apply everything I learned was by making a project that would be related to testing. My Final Project for [CS50 Course](https://cs50.harvard.edu/x/2023/) is a set of autotests for the last P-set of the course, [Finance](https://cs50.harvard.edu/x/2023/psets/9/finance/).
 
 
 ## Table of Contents
@@ -17,24 +17,23 @@
 
 
 ## General Information
-- This project is intended to be a tool that allows one to check if their Finance application adheres to the requirements of the assignment, by expanding and partly overlapping with the set of tests provided by `check50` command
-- The purpose of the project is to exercise the abilities of one's Finance application by executing a number of tests that verify the app's behavior in different situations. By analyzing test results, the author can detect and fix bugs in their algorithms and make decisions to improve their project in some aspects. 
+- This project is intended to be a tool that allows one to check if their Finance web application adheres to the requirements of the assignment, by expanding and partly overlapping with the set of tests provided by `check50` command
+- The purpose of the project is to exercise the abilities of one's Finance web application by executing a number of tests that verify the app's behavior in different situations. By analyzing test results, the author can detect and fix bugs in their algorithms and make decisions to improve their project in some aspects. 
 - As a quality assurance specialist, I strive to improve in my field of work. Undertaking this project was a great way to get familiar with test automation and programming concepts related to testing. 
 
-This Test Suite consists of over **600+** tests made for different features of the Finance web app. 
+This Test Suite consists of over **600+** tests made for features of the Finance web app. 
 This project utilizes Selenium library to emulate user actions in a browser window; allowing to produce and execute various scenarios and test cases. Additionally, Pytest framework allows one to choose specific pre-conditions, levels of logging detail and to decide which sets of tests will be executed. 
 
 
 ## Technologies Used
-- Python language
 - Pytest framework
-- Selenium package for Python
+- Selenium library package for Python
 - Additional packages as stated in `requirements.txt`
 
 
 ## Features
 - Run tests for different features of the Finance web app together or separately
-- Choose which browser would you like to run your tests with
+- Choose which browser you would like to run your tests with
 - Choose to enable/disable headless mode for the browser
 - Provide access to your SQLite database to run additional database-related tests
 
@@ -44,6 +43,53 @@ This project utilizes Selenium library to emulate user actions in a browser wind
 
 
 ## Setup
+
+This project can be used as both a standalone and an addition to an existing Finance project. This depends on if you want to run database-reliant tests or not.
+Since you can only access Sqlite database if you have direct access to *.db file, in order for those tests to work you will have to have your Test Suite and Finance application in the same repo, same folder. If you're only interested in running tests that do not utilize Sqlite database, you can just clone the repo locally or create a virtual codespace with repository checked out.
+
+### Step 1: Setting up the IDE
+
+#### Using virtual codespace (independently)
+
+- To create Github virtual codespace with the project checked out, go to the project's page and click Code button, then in the Codespaces tab click "Create codespace on master"
+![scr1](https://github.com/Swordy777/CS50-Final-Project/assets/59532784/50138f0c-58bf-446e-bb87-6bf167deff52)
+- Codespace might recommend you to install Microsoft Python extension (@id:ms-python.python in the search input on extensions tab). Proceed with installing it.
+
+#### Using VS Code desktop (independently)
+- Download and install [VS Code Desktop](https://code.visualstudio.com/)
+- Download and install [WSL from Microsoft Store](https://www.microsoft.com/store/productId/9P9TQF7MRM4R)
+- Go to the Control Panel, click Programs, and then click Turn Windows features on or off
+- Enable the Virtual Machine Platform option. 
+- Enable the Windows Subsystem for Linux option.
+- Open VS Code Desktop
+- 
+
+#### Combining existing project with tests
+- Open your Github virtual codespace with your current project repo checked out, download Test Suite as *.zip file and unzip it the way you prefer (by using the VS Code GUI or `unzip` command)
+![image](https://github.com/Swordy777/CS50-Final-Project/assets/59532784/35674f55-9ff6-40fb-b3e8-d0afe40f818f)
+
+
+### Step 2: Creating and enabling virtual environment
+
+Just so you wouldn't have to manage all of your installed packages all at once, and to avoid any conflicts, create a virtual environment:
+- Make sure it's a bash terminal 
+- Execute the following command: `python -m venv nameofyourvenv`
+- And then activate your environment: `source nameofyourvenv/bin/activate`. Your command line will have a (nameofyourvenv) prefix if everything succeeds.
+
+### Step 3: Installing packages
+- Make sure you're in the folder with the project files
+- Install required packages with `pip install -r requirements.txt`
+
+### Step 4: Installing Chrome and Firefox
+- Make sure you're in the folder with the project files
+- Execute Chrome installation script `bash install-chrome.sh`
+- Execute Firefox installation script `bash install-firefox.sh`
+
+
+
+
+
+
 What are the project requirements/dependencies? Where are they listed? A requirements.txt or a Pipfile.lock file perhaps? Where is it located?
 
 Proceed to describe how to install / setup one's local environment / get started with the project.
@@ -65,12 +111,12 @@ This project might be far from perfect, but this version felt like a reasonable 
 ## Room for Improvement
 Of course, as with any project, it has room for improvement. Here's a couple of ideas to improve the project:
 
-- For example, the solution that I used to generate test classes just so fixtures would be called for each set of the parametrized tests doesn't look as succinct and easy to use as desired.
-- Related to auto-generated classes from the previous bullet point, it is not yet possible to mark parametrized data sets with pytest.mark for classes that are being created this way.
-- Also related to it, sometimes test re-runs with `pytest --lf` do not pick all of the failed tests if they were part of the auto-generated classes.
+- For example, the solution that I used to generate test classes just so fixtures would be called for each set of the parametrized tests isn't as simple and easy to use as desired.
+- Related to auto-generated classes from the previous bullet point, it is not yet possible to mark parametrized data sets with pytest.mark (in other words to mark some of the parameters from a range as expected to fail, etc.) for classes that are being created this way.
+- Also related to it, sometimes test re-runs with `pytest --lf` do not pick all of the failed tests if some of them were auto-generated.
 - Some tests have similar structure and could just be one test with a number of conditionals (potential downsides: test structure might get too complex).
 - Referencing test case inputs by using list indexes doesn't look like the most convenient way of handling it.
-- and many more...
+- Firefox installation process was discovered by trials and errors, and may not be the best way to do it
 
 ## Acknowledgements
 - The base of this project is the knowledge provided by the [CS50 Course](https://cs50.harvard.edu/x/2023/)
