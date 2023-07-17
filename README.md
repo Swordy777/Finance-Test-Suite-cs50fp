@@ -47,15 +47,15 @@ This project utilizes Selenium library to emulate user actions in a browser wind
 This project can be used as both a standalone and an addition to an existing Finance project. This depends on if you want to run database-reliant tests or not.
 Since you can only access Sqlite database if you have direct access to *.db file, in order for those tests to work you will have to have your Test Suite and Finance application in the same repo, same folder. If you're only interested in running tests that do not utilize Sqlite database, you can just clone the repo locally or create a virtual codespace with repository checked out.
 
-### Setting up the IDE
+### Step 1: Setting up the IDE
 
-#### Using virtual codespace (standalone)
+#### Using virtual codespace (independently)
 
 - To create Github virtual codespace with the project checked out, go to the project's page and click Code button, then in the Codespaces tab click "Create codespace on master"
 ![scr1](https://github.com/Swordy777/CS50-Final-Project/assets/59532784/50138f0c-58bf-446e-bb87-6bf167deff52)
 - Codespace might recommend you to install Microsoft Python extension (@id:ms-python.python in the search input on extensions tab). Proceed with installing it.
 
-#### Using VS Code desktop (standalone)
+#### Using VS Code desktop (independently)
 - Download and install [VS Code Desktop](https://code.visualstudio.com/)
 - Download and install [WSL from Microsoft Store](https://www.microsoft.com/store/productId/9P9TQF7MRM4R)
 - Go to the Control Panel, click Programs, and then click Turn Windows features on or off
@@ -64,29 +64,23 @@ Since you can only access Sqlite database if you have direct access to *.db file
 - Open VS Code Desktop
 - 
 
-#### Adding tests to existing project
+#### Combining existing project with tests
 - Open your Github virtual codespace with your current project repo checked out, download Test Suite as *.zip file and unzip it the way you prefer (by using the VS Code GUI or `unzip` command)
 ![image](https://github.com/Swordy777/CS50-Final-Project/assets/59532784/35674f55-9ff6-40fb-b3e8-d0afe40f818f)
 
 
-- To create Github virtual codespace with the project checked out, go to the project's page and click Code button, then in the Codespaces tab click "Create codespace on master"
-![Example screenshot](https://i.ibb.co/hZ2xvqt/scr1.png)
-- Codespace might recommend you to install Microsoft Python extension (@id:ms-python.python in the search input on extensions tab). Proceed with installing it.
-
-
-  
-#### Creating and enabling virtual environment
+### Step 2: Creating and enabling virtual environment
 
 Just so you wouldn't have to manage all of your installed packages all at once, and to avoid any conflicts, create a virtual environment:
 - Make sure it's a bash terminal 
 - Execute the following command: `python -m venv nameofyourvenv`
 - And then activate your environment: `source nameofyourvenv/bin/activate`. Your command line will have a (nameofyourvenv) prefix if everything succeeds.
 
-#### Installing packages
+### Step 3: Installing packages
 - Make sure you're in the folder with the project files
 - Install required packages with `pip install -r requirements.txt`
 
-#### Installing Chrome and Firefox
+### Step 4: Installing Chrome and Firefox
 - Make sure you're in the folder with the project files
 - Execute Chrome installation script `bash install-chrome.sh`
 - Execute Firefox installation script `bash install-firefox.sh`
