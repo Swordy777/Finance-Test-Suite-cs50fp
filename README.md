@@ -49,10 +49,11 @@ Since you can only access Sqlite database if you have direct access to *.db file
 
 ### Step 1: Setting up the IDE
 
-#### Option1: Using virtual codespace (independently)
+#### Option 1: Using virtual codespace (independently)
 
 - To create Github virtual codespace with the project checked out, go to the project's page and click Code button, then in the Codespaces tab click "Create codespace on master"
-![scr1](https://github.com/Swordy777/CS50-Final-Project/assets/59532784/50138f0c-58bf-446e-bb87-6bf167deff52)
+<img src="https://github.com/Swordy777/CS50-Final-Project/assets/59532784/50138f0c-58bf-446e-bb87-6bf167deff52" width="300">
+
 - Codespace might recommend you to install Microsoft Python extension (@id:ms-python.python in the search input on extensions tab). Proceed with installing it.
 
 #### Option 2: Using VS Code desktop (independently)
@@ -66,8 +67,7 @@ Since you can only access Sqlite database if you have direct access to *.db file
 
 #### Option 3: Adding tests to an existing project
 - Download Test Suite as *.zip file and unzip it the way you prefer (by using the VS Code GUI or `unzip` command) to your current project repo, be it in a virtual codespace or in VS Code desktop
-![image](https://github.com/Swordy777/CS50-Final-Project/assets/59532784/35674f55-9ff6-40fb-b3e8-d0afe40f818f)
-
+<img src="https://github.com/Swordy777/CS50-Final-Project/assets/59532784/35674f55-9ff6-40fb-b3e8-d0afe40f818f" width="300">
 
 ### Step 2: Creating and enabling virtual environment
 
