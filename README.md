@@ -13,7 +13,6 @@
 * [Room for Improvement](#room-for-improvement)
 * [Acknowledgements](#acknowledgements)
 * [Contact](#contact)
-<!-- * [License](#license) -->
 
 
 ## General Information
@@ -45,54 +44,102 @@ This project utilizes Selenium library to emulate user actions in a browser wind
 ## Setup
 
 This project can be used as both a standalone and an addition to an existing Finance project. This depends on if you want to run database-reliant tests or not.
-Since you can only access Sqlite database if you have direct access to *.db file, in order for those tests to work you will have to have your Test Suite and Finance application in the same repo, same folder. If you're only interested in running tests that do not utilize Sqlite database, you can just clone the repo locally or create a virtual codespace with repository checked out.
+Since you can only access Sqlite database if you have direct access to *.db file, in order for those tests to work you will have to have your Test Suite and Finance application in the same repo. If you're only interested in running tests that do not utilize Sqlite database, you can just clone the repo locally or create a virtual codespace with repository checked out.
+
 
 ### Step 1: Setting up the IDE
 
 #### Option 1: Using virtual codespace (independently)
 
-- To create Github virtual codespace with the project checked out, go to the project's page and click Code button, then in the Codespaces tab click "Create codespace on master"
-<img src="https://github.com/Swordy777/CS50-Final-Project/assets/59532784/50138f0c-58bf-446e-bb87-6bf167deff52" width="300">
-
-- Codespace might recommend you to install Microsoft Python extension (@id:ms-python.python in the search input on extensions tab). Proceed with installing it.
+- To create Github virtual codespace with the project checked out, go to the project's page and click Code button, then in the Codespaces tab click "Create codespace on master":
+  > <img src="https://github.com/Swordy777/CS50-Final-Project/assets/59532784/50138f0c-58bf-446e-bb87-6bf167deff52" width="350">
+- Install Microsoft Python extension (`@id:ms-python.python` in the search bar in the extensions tab)
 
 #### Option 2: Using VS Code desktop (independently)
-- Download and install [VS Code Desktop](https://code.visualstudio.com/)
-- Download and install [WSL from Microsoft Store](https://www.microsoft.com/store/productId/9P9TQF7MRM4R)
-- Go to the Control Panel, click Programs, and then click Turn Windows features on or off
-- Enable the Virtual Machine Platform option. 
-- Enable the Windows Subsystem for Linux option.
-- Open VS Code Desktop
-- 
+- Follow the steps from [this seminar with Carter Zenke](https://cs50.harvard.edu/x/2023/seminars/#developing-your-project-locally-with-vs-code) on how to install VS Code, WSL and set up your project locally or follow the steps below:
 
-#### Option 3: Adding tests to an existing project
+  - Download and install [VS Code Desktop](https://code.visualstudio.com/)
+  - Install [Windows Subsystem for Linux](https://www.microsoft.com/store/productId/9P9TQF7MRM4R)
+  - Install [Ubuntu WSL](https://www.microsoft.com/store/productId/9PDXGNCFSCZV)
+    > You might also need to go to the Control Panel→Programs→"Turn Windows features on or off", where you'll have to enable the Virtual Machine Platform and Windows Subsystem for Linux options and restart your PC
+  - Download and install [Python](https://www.python.org/downloads/)
+  - Run newly installed Ubuntu app (a terminal will show up). Allow it to finish installation and pick a username and password of your choice. Close the terminal
+    > If you get the `Failed to attach disk 'LocalState\ext4.vhdx' to WSL2: The system cannot find the file specified.` error, open Powershell and execute:
+    > ```
+    > wsl --unregister ubuntu
+    > wsl --install
+    > ```
+  - Open VS Code Desktop, let it connect to WSL
+  - Install Microsoft WSL Extension (`ms-vscode-remote.remote-wsl`  in the search bar in the extensions tab) and Microsoft Python extension (`@id:ms-python.python` in the search bar in the extensions tab)
+      > If a message that you're on wsl 1 is shown, use [this documentation](https://learn.microsoft.com/en-us/windows/wsl/basic-commands#set-wsl-version-to-1-or-2) to switch to wsl 2
+  - Press Ctrl + Shift + P → WSL: Open folder in WSL, then pick "Show Local" and choose a folder for the project. Press <code>Ctrl + `</code> to display a terminal and check if it runs on Powershell; if it is, press Ctrl + Shift + P again and pick WSL: Reopen folder in WSL. This time after VS Code restarts your terminal should use bash
+- Enable Ubuntu repositories:
+  >```
+  >sudo add-apt-repository main
+  >sudo add-apt-repository universe
+  >sudo add-apt-repository restricted
+  >sudo add-apt-repository multiverse
+  >```
+- Go to the project page, and click the Code button, then in the Local tab click Github CLI and copy the CLI command for repo cloning:
+  > <img src="https://github.com/Swordy777/CS50-Final-Project/assets/59532784/7d469a2f-7957-4493-b483-1cac4d432000" width="350">
+- Paste the command into your bash terminal and execute it.
+  > If necessary, install `gh` package and go through Github's authentication process
+
+#### Option 3: Adding tests to an existing project (if you already have your IDE setup)
 - Download Test Suite as *.zip file and unzip it the way you prefer (by using the VS Code GUI or `unzip` command) to your current project repo, be it in a virtual codespace or in VS Code desktop
-<img src="https://github.com/Swordy777/CS50-Final-Project/assets/59532784/35674f55-9ff6-40fb-b3e8-d0afe40f818f" width="300">
+  > <img src="https://github.com/Swordy777/CS50-Final-Project/assets/59532784/35674f55-9ff6-40fb-b3e8-d0afe40f818f" width="350">
 
-### Step 2: Creating and enabling virtual environment
+
+### Step 2: Creating and enabling a virtual environment
 
 Just so you wouldn't have to manage all of your installed packages all at once, and to avoid any conflicts, create a virtual environment:
-- Make sure it's a bash terminal 
-- Execute the following command: `python -m venv nameofyourvenv`
-- And then activate your environment: `source nameofyourvenv/bin/activate`. Your command line will have a (nameofyourvenv) prefix if everything succeeds.
+- Make sure you're in a bash terminal 
+- Execute the following command: `python -m venv name-your-venv`
+> if you get
+> ```
+> Command 'python' not found, did you mean:
+> command 'python3' from deb python3
+> command 'python' from deb python-is-python3
+> ```
+> error, execute the following command: `alias python='python3'`
+> Also, execute `sudo apt install python3.10-venv` if prompted
+- Activate your environment: `source name-your-venv/bin/activate`. Your command line will have a (name-your-venv) prefix if everything succeeds.
+
 
 ### Step 3: Installing packages
 - Make sure you're in the folder with the project files
 - Install required packages with `pip install -r requirements.txt`
+  > Install pip with `sudo apt install python3-pip` if prompted
 
 ### Step 4: Installing Chrome and Firefox
 - Make sure you're in the folder with the project files
 - Execute Chrome installation script `bash install-chrome.sh`
-- Execute Firefox installation script `bash install-firefox.sh`
+- To install Firefox, execute `sudo apt-get install firefox` command
+> If Firefox installed the way above isn't working correctly, execute `sudo apt purge firefox` and try to run the installation script `bash install-firefox.sh`
+> Alternatively, to uninstall Firefox that was installed by install-firefox.sh, execute:
+> ```
+> sudo rm -r /etc/alternatives/firefox
+> sudo rm /usr/bin/firefox
+> ```
 
 
+### Optional: Setup X11 forwarding to see tests execute in browser window (for virtual codespace only)
 
-
-
-
-What are the project requirements/dependencies? Where are they listed? A requirements.txt or a Pipfile.lock file perhaps? Where is it located?
-
-Proceed to describe how to install / setup one's local environment / get started with the project.
+>Virtual codespace doesn't allow to run GUI applications. This step is required if you want to see stuff happening in browser for tests that you execute in virtual codespace 
+- Execute `sudo apt-get install xbase-clients` in your virtual codespace
+- Download and install [Github CLI](https://cli.github.com/)
+- Download and install [VcXsrv](https://sourceforge.net/projects/vcxsrv/)
+- Run Xserver (during the setup process just click 'Next' until it's finished; give access if prompted)
+- Run cmd.exe
+- In command line, execute:
+  ```
+  setx DISPLAY "127.0.0.1:0.0"
+  gh cs ssh -- -XY
+  ```
+- If prompted, authorize; pick your codespace in list of available codespaces.
+- Check your DISPLAY environment variable: `echo $DISPLAY`. If it isn’t set, execute `export DISPLAY=localhost:10.0`
+- Activate venv from Step 2
+- Run tests :)
 
 
 ## Usage
@@ -116,7 +163,7 @@ Of course, as with any project, it has room for improvement. Here's a couple of 
 - Also related to it, sometimes test re-runs with `pytest --lf` do not pick all of the failed tests if some of them were auto-generated.
 - Some tests have similar structure and could just be one test with a number of conditionals (potential downsides: test structure might get too complex).
 - Referencing test case inputs by using list indexes doesn't look like the most convenient way of handling it.
-- Firefox installation process was discovered by trials and errors, and may not be the best way to do it
+- Firefox installation script was discovered by trials and errors, and may not be the best way to do it.
 
 ## Acknowledgements
 - The base of this project is the knowledge provided by the [CS50 Course](https://cs50.harvard.edu/x/2023/)
@@ -129,5 +176,3 @@ Of course, as with any project, it has room for improvement. Here's a couple of 
 
 ## Contact
 Created by [@Andrei Zorin](mailto:swordy777@gmail.com) - feel free to contact me!
-
-<!-- MIT License -->
