@@ -6,8 +6,9 @@ pushd "$HOME"
 echo "Update the repository and any packages..."
 sudo apt update && sudo apt upgrade -y
 
-echo "Installing libdbus-glib-1-2 which is necessary for Firefox..."
+echo "Installing necessary packages..."
 sudo apt-get install libdbus-glib-1-2
+sudo apt install bzip2
 
 echo "Download the latest Firefox installation package..."
 wget -O ~/FirefoxSetup.tar.bz2 "https://download.mozilla.org/?product=firefox-latest&os=linux64&lang=en-US"
