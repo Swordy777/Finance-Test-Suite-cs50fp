@@ -194,7 +194,7 @@ Besides existing CLI arguments for Pytest, I added a couple of custom ones:
 
 You can combine custom CLI arguments, for example:
 ```
-pytest -s -v -tb=long test_history_page.py::TestHistoryTableDataDependencies --headless --db_usage=yes
+pytest -s -v --tb=long test_history_page.py::TestHistoryTableDataDependencies --headless --db-usage=yes
 ```
 will run all of the tests in the class `TestHistoryTableDataDependencies()` from `test_history_page.py` module with access to database, in headless mode in Chrome
 
