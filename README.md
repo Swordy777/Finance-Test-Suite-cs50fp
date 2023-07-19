@@ -18,7 +18,6 @@
 ## General Information
 - This project is intended to be a tool that allows one to check if their Finance web application adheres to the requirements of the assignment, by expanding and partly overlapping with the set of tests provided by `check50` command
 - The purpose of the project is to exercise the abilities of one's Finance web application by executing a number of tests that verify the app's behavior in different situations. By analyzing test results, the author can detect and fix bugs in their algorithms and make decisions to improve their project in some aspects. 
-- As a quality assurance specialist, I strive to improve in my field of work. Undertaking this project was a great way to get familiar with test automation and programming concepts related to testing. 
 
 This Test Suite consists of over **600+** tests made for features of the Finance web app. 
 This project utilizes Selenium library to emulate user actions in a browser window; allowing to produce and execute various scenarios and test cases. Additionally, Pytest framework allows one to choose specific pre-conditions, levels of logging detail and to decide which sets of tests will be executed. 
@@ -26,12 +25,11 @@ This project utilizes Selenium library to emulate user actions in a browser wind
 
 ## Technologies Used
 - Pytest framework
-- Selenium library package for Python
-- Additional packages as stated in `requirements.txt`
+- Selenium library
 
 
 ## Features
-- Run tests for different features of the Finance web app together or separately
+- Run tests for different features of the Finance web app
 - Choose which browser you would like to run your tests with
 - Choose to enable/disable headless mode for the browser
 - Provide access to your SQLite database to run additional database-related tests
@@ -40,7 +38,7 @@ This project utilizes Selenium library to emulate user actions in a browser wind
 ## Setup
 
 This project can be used as both a standalone and an addition to an existing Finance project. This depends on if you want to run database-reliant tests or not.
-Since you can only access the SQLite database if you have direct access to *.db file, in order for those tests to work you will have to have your Test Suite and Finance application in the same repo. If you're only interested in running tests that do not utilize the SQLite database, you can just clone the repo locally or create a virtual codespace with the repository checked out.
+Since you can only access the SQLite database if you have direct access to *.db file, in order for those tests to work you need to have your Test Suite and Finance application in the same folder. If you're only interested in running tests that do not utilize the SQLite database, you can go with the standalone option and just clone the repo locally or create a virtual codespace with the repository checked out.
 
 
 ### Step 1: Setting up the IDE
@@ -52,7 +50,7 @@ Since you can only access the SQLite database if you have direct access to *.db 
 - Install Microsoft Python extension (`@id:ms-python.python` in the search bar in the extensions tab)
 
 #### Option 2: Using VS Code desktop (independently)
-- Follow the steps from [this seminar with Carter Zenke](https://cs50.harvard.edu/x/2023/seminars/#developing-your-project-locally-with-vs-code) on how to install VS Code, WSL and set up your project locally or follow the steps below:
+- Watch and follow the instructions from [this seminar with Carter Zenke](https://cs50.harvard.edu/x/2023/seminars/#developing-your-project-locally-with-vs-code) on how to install VS Code, WSL and set up your project locally or follow the steps below:
 
   - Download and install [VS Code Desktop](https://code.visualstudio.com/)
   - Install [Windows Subsystem for Linux](https://www.microsoft.com/store/productId/9P9TQF7MRM4R)
@@ -68,7 +66,7 @@ Since you can only access the SQLite database if you have direct access to *.db 
   - Open VS Code Desktop, and let it connect to WSL
   - Install Microsoft WSL Extension (`ms-vscode-remote.remote-wsl`  in the search bar in the extensions tab) and Microsoft Python extension (`@id:ms-python.python` in the search bar in the extensions tab)
       > If a message that you're on wsl 1 is shown, use [this documentation](https://learn.microsoft.com/en-us/windows/wsl/basic-commands#set-wsl-version-to-1-or-2) to switch to wsl 2
-  - Press Ctrl + Shift + P → WSL: Open folder in WSL, then pick "Show Local" and choose a folder for the project. Press <code>Ctrl + `</code> to display a terminal and check if it runs on Powershell; if it is, press Ctrl + Shift + P again and pick WSL: Reopen folder in WSL. This time after VS Code restarts your terminal should use bash
+  - Press Ctrl + Shift + P → WSL: Open folder in WSL, then pick "Show Local" and choose a folder for the project. Press <code>Ctrl + `</code> to display a terminal and check if it runs on Powershell; if it does, press Ctrl + Shift + P again and pick WSL: Reopen folder in WSL. This time after VS Code restarts your terminal should use bash
 - Enable Ubuntu repositories:
   >```
   >sudo add-apt-repository main
@@ -121,21 +119,24 @@ Just so you wouldn't have to manage all of your installed packages all at once, 
 
 ### Optional: Setup X11 forwarding to watch tests execute in browser window (for virtual codespace only)
 
->Virtual codespace doesn't allow to run GUI applications. This step is required if you want to see stuff happening in the browser for tests that you execute in virtual codespace 
+>Virtual codespace doesn't allow to run GUI applications. This means if you choose to work with this project by using virtual codespace, you will have two options:
+> 1. You can only run tests using `--headless` CLI argument (look for the details in the **Usage** section)
+> 2. If you want to see tests execute in browser, follow the instructions below.
 - Execute `sudo apt-get install xbase-clients` in your virtual codespace
 - Download and install [Github CLI](https://cli.github.com/)
 - Download and install [VcXsrv](https://sourceforge.net/projects/vcxsrv/)
-- Run Xserver (during the setup process just click 'Next' until it's finished; give access if prompted)
+- Run Xserver (Xlaunch); during the setup process just click 'Next' until it's finished; give access if prompted
 - Run cmd.exe
-- In the command line, execute:
-  ```
-  setx DISPLAY "127.0.0.1:0.0"
-  gh cs ssh -- -XY
-  ```
-- If prompted, authorize; pick your codespace in the list of available codespaces.
-- Check your DISPLAY environment variable: `echo $DISPLAY`. If it isn’t set, execute `export DISPLAY=localhost:10.0`
-- Activate venv from Step 2
-- Run tests :)
+- In the command line:
+  - Execute:
+    ```
+    setx DISPLAY "127.0.0.1:0.0"
+    gh cs ssh -- -XY
+    ```
+  - If prompted, authorize; pick your codespace in the list of available codespaces.
+  - Check your DISPLAY environment variable: `echo $DISPLAY`. If it isn’t set, execute `export DISPLAY=localhost:10.0`
+  - Activate venv from Step 2
+  - Run tests :)
 
 
 ## Expected Data Setup
@@ -145,18 +146,26 @@ By default, this Test Suite is set up for testing the Finance web application cr
 In reality, everyone's implementation will more or less vary. To address some of the inconsistencies, this project has a number of files that prepare some static data:
 
 ### Constants
-`constants.py` file contains test cases and most of the static data, like the URL for the application, available routes, table header names, etc. It is advised to check if each of the variables defined here matches with your implementation.
+`constants.py` file contains parameter sets for test cases and most of the static data, like the URL for the application, available routes, table header names, etc. Please edit it accordingly so each of the variables defined here matches your implementation.
+  > But how do I figure out what's the URL for my Finance web application after I deploy it with `flask run`?
+  > After your web app is deployed, you will usually get a URL in the terminal:
+  > ![image](https://github.com/Swordy777/Finance-Test-Suite-cs50fp/assets/59532784/7100cf48-287c-4990-86f2-7d6811ca1b03)
+  > Notice, that the domain name ends with a certain number - it is the port that is used to host the app.
+  > Don't forget to set port visibility to public, so the tests can access it:
+  > 
+  > <img src="https://github.com/Swordy777/Finance-Test-Suite-cs50fp/assets/59532784/8e12a338-88ca-4aa5-b65b-ba801d2c1c8a" width="350">
 
 ### Locators
-`/pages/locators.py` contains unique locators for most of the elements present on the application's pages. To correctly detect each of the elements, it has to be edited accordingly (and is also a great practice in learning how CSS and XPath selectors work!).
+`/pages/locators.py` contains unique locators for most of the elements present on the application's pages. Please check that current locators match your webpage elements, so tests can correctly detect interact with them (also, this is a great practice in learning how CSS and XPath selectors work!).
 
 ### Database queries
-`db_queries.py` contains all of the database queries that are used to run database-related tests. These particular queries were made for the database which I created for my implementation of Finance. Sorry, spoilers! But designing a database isn't the only thing you'll have to do to finish this P-set. That's why you can either use these queries to kind of get an idea of what the initial database schema looked like and adjust it so the queries would work, or you can exercise your SQL skills and rewrite all of the queries so they would fit your own database schema.
+`db_queries.py` contains all of the database queries that are used to run database-related tests. These particular queries apply to a db schema designed for my implementation of Finance. Sorry, spoilers! But designing a database isn't the only thing you'll have to do to finish this P-set. You can either use these queries to kind of get an idea of what the initial schema looked like and adjust it for queries, or you can exercise your SQL skills and rewrite all of the queries so they would fit your own database schema.
 
 
 ## Usage
 
-To run all of the tests, first go into the project directory and then run `pytest`. This will result in collecting all of the available tests in the current directory.
+By simply going to the folder with tests and running `pytest` in terminal window, pytest will collect all of the tests in the current directory and execute them.
+  > If for any reason this doesn't work for you, try to invoke it like this: `python -m pytest ...`
 
 Tests can also be run for each of the modules. For example `pytest test_buy_page.py` will only run tests stored in `test_buy_page.py` module
 
@@ -206,10 +215,10 @@ This project might be far from perfect, but this version felt like a reasonable 
 Of course, as with any project, it has room for improvement. Here's a couple of ideas to improve the project:
 
 - For example, the solution that I used to generate test classes just so fixtures would be called for each set of the parametrized tests isn't as simple and easy to use as desired.
-- Related to auto-generated classes from the previous bullet point, it is not yet possible to mark parametrized data sets with pytest.mark (in other words to mark some of the parameters from a range as expected to fail, etc.) for classes that are being created this way.
-- Also related to it, sometimes test re-runs with `pytest --lf` do not pick all of the failed tests if some of them were auto-generated.
+- Related to auto-generated classes from the previous bullet point, it is not yet possible to mark parametrized data sets with pytest.mark (in other words to mark some of the parameters from a range as expected to fail, etc.) for such classes.
+- Also related to first bullet point, sometimes test re-runs with `pytest --lf` do not pick all of the failed tests if some of them were auto-generated.
 - Some tests have similar structure and could just be one test with a number of conditionals (potential downsides: test structure might get too complex).
-- Referencing test case inputs by using list indexes doesn't look like the most convenient way of handling it.
+- Referencing test case parameter sets by using list indexes doesn't look like the most convenient way of handling it.
 - Firefox installation script might do more harm than good and is subject to analysis.
 
 ## Acknowledgements
@@ -217,6 +226,7 @@ Of course, as with any project, it has room for improvement. Here's a couple of 
 - Pytest and Selenium knowledge and techniques based on [this Stepik course](https://stepik.org/course/575/promo#toc) (ru-lang only)
 - An important solution to the problem of not being able to call fixtures for each of the parametrized sets of tests from [this topic on pytest's github discussions page](https://github.com/pytest-dev/pytest/discussions/11038)
 - A ton of different stackoverflow topics like: [not being able to type emojis with Selenium in Chrome](https://stackoverflow.com/questions/59138825/chromedriver-only-supports-characters-in-the-bmp-error-while-sending-emoji-with), [zipping dictionaries by key matches](https://stackoverflow.com/questions/29645415/python-zip-by-key), etc.
+- Instruction on how to [install Google Chrome on WSL](https://cloudbytes.dev/snippets/run-selenium-and-chrome-on-wsl2), [install Firefox on WSL](https://linuxconfig.org/how-to-install-uninstall-and-update-firefox-on-ubuntu-20-04-focal-fossa-linux), [run GUI apps in virtual codespace](https://babyprogrammer.com/blog/running-gui-code-applications-in-github-codespaces-on-windows/), etc.
 - Different documentation available on the net, like [the sqlite3 library for python](https://docs.python.org/3/library/sqlite3.html), [pytest documentation](https://docs.pytest.org/en/7.1.x/index.html), [experimenting and learning more of the regular expressions](https://docs.python.org/3/library/re.html), [getting more familiar with dictionary methods](https://www.w3schools.com/python/python_dictionaries_methods.asp), [learning more about css and xpath selectors](https://www.w3schools.com/cssref/css_selectors.php), and many more
 - Many thanks to [David J. Mallan](https://cs.harvard.edu/malan/) and the team behind the [CS50 Course](https://cs50.harvard.edu/x/2023/) for making learning fun and giving this spark of creativity a proper headstart!
 
