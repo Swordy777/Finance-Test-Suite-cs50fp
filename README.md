@@ -6,7 +6,6 @@
 * [General Info](#general-information)
 * [Technologies Used](#technologies-used)
 * [Features](#features)
-* [Screenshots](#screenshots)
 * [Setup](#setup)
 * [Expected Data Setup](#expected-data-setup)
 * [Usage](#usage)
@@ -36,10 +35,6 @@ This project utilizes Selenium library to emulate user actions in a browser wind
 - Choose which browser you would like to run your tests with
 - Choose to enable/disable headless mode for the browser
 - Provide access to your SQLite database to run additional database-related tests
-
-
-## Screenshots
-![Example screenshot](./img/screenshot.png)
 
 
 ## Setup
