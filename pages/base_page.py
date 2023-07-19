@@ -13,7 +13,7 @@ from .locators import BasePageLocators
 # Default timeout value for webpage element search (in seconds)
 DEFAULT_TIMEOUT = 4
 # Timeout for webpage redirect waits
-TRANSITION_TO = 60
+TRANSITION_TO = 4
 
 
 class BasePage():
