@@ -228,7 +228,7 @@ Of course, as with any project, it has room for improvement. Here's a couple of 
 - A ton of different stackoverflow topics like: [not being able to type emojis with Selenium in Chrome](https://stackoverflow.com/questions/59138825/chromedriver-only-supports-characters-in-the-bmp-error-while-sending-emoji-with), [zipping dictionaries by key matches](https://stackoverflow.com/questions/29645415/python-zip-by-key), etc.
 - Instruction on how to [install Google Chrome on WSL](https://cloudbytes.dev/snippets/run-selenium-and-chrome-on-wsl2), [install Firefox on WSL](https://linuxconfig.org/how-to-install-uninstall-and-update-firefox-on-ubuntu-20-04-focal-fossa-linux), [run GUI apps in virtual codespace](https://babyprogrammer.com/blog/running-gui-code-applications-in-github-codespaces-on-windows/), etc.
 - Different documentation available on the net, like [the sqlite3 library for python](https://docs.python.org/3/library/sqlite3.html), [pytest documentation](https://docs.pytest.org/en/7.1.x/index.html), [experimenting and learning more of the regular expressions](https://docs.python.org/3/library/re.html), [getting more familiar with dictionary methods](https://www.w3schools.com/python/python_dictionaries_methods.asp), [learning more about css and xpath selectors](https://www.w3schools.com/cssref/css_selectors.php), and many more
-- Many thanks to [David J. Mallan](https://cs.harvard.edu/malan/) and the team behind the [CS50 Course](https://cs50.harvard.edu/x/2023/) for making learning fun and giving this spark of creativity a proper headstart!
+
 
 
 ## Contact
