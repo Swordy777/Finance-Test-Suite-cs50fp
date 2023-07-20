@@ -1,5 +1,5 @@
 # Finance P-set Test Suite (CS50 Final Project assignment)
-> Since my background is in the quality assurance field, I decided that the best way to apply everything I learned was by making a project that would be related to testing. My Final Project for [CS50 Course](https://cs50.harvard.edu/x/2023/) is a set of autotests for the last P-set of the course, [Finance](https://cs50.harvard.edu/x/2023/psets/9/finance/).
+> Since my background is in the quality assurance field, I decided that the best way to apply everything I learned was by making a project that would be related to testing. My Final Project for [CS50 Course](https://cs50.harvard.edu/x/2023/) is a set of tests for the last P-set of the course, [Finance](https://cs50.harvard.edu/x/2023/psets/9/finance/).
 
 
 ## Table of Contents
