@@ -188,6 +188,8 @@ Besides existing CLI arguments for Pytest, I added a couple of custom ones:
 ### --headless
 > Runs browser in headless mode, by default it's off. This means that instead of displaying the browser window, tests will execute in the background, for example: `pytest test_sell_page.py --headless`
 
+> [!IMPORTANT]
+> When using this project in a virtual codespace, ALWAYS use this tag, unless you've set up the X11 solution from above.
 ### --browser
 > Allows to choose the browser to run tests. By default it's Chrome, so executing `pytest -s -v --tb=line test_quote_page.py --browser=firefox` will run Quote Page tests in Firefox
 
